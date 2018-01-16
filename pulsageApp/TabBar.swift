@@ -26,9 +26,7 @@ class TabBar: UITabBarController, UITabBarControllerDelegate {
         super.viewDidAppear(true)
        
         self.setNavbarProp()
-        UITabBarItem.appearance().setTitleTextAttributes([NSAttributedStringKey.foregroundColor: UIColor.green], for: .normal)
-        
-        
+        //UITabBarItem.appearance().setTitleTextAttributes([NSAttributedStringKey.foregroundColor: UIColor.green], for: .normal)
     }
     
     override func viewWillLayoutSubviews() {
@@ -103,9 +101,12 @@ class TabBar: UITabBarController, UITabBarControllerDelegate {
         self.navigationItem.setRightBarButtonItems([menuBtn ], animated: true)
         
         let feedbackBtn = UIBarButtonItem(title: "Feedback", style: .done, target: self, action: nil)
-    
+        feedbackBtn.setTitleTextAttributes([NSAttributedStringKey.font: UIFont(name: "HelveticaNeue-Light", size: 16)!], for: .normal)
         self.navigationItem.setLeftBarButtonItems([feedbackBtn], animated: true)
-        self.navigationController?.navigationBar.topItem?.title = "Trending"
+        
+        
+        let attributes = [NSAttributedStringKey.font: UIFont(name: "HelveticaNeue", size: 20)!, NSAttributedStringKey.foregroundColor: UIColor.white]
+        self.navigationController?.navigationBar.titleTextAttributes = attributes
         
     }
     // Mark: present Camera view controller

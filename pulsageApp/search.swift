@@ -124,6 +124,7 @@ extension search: UISearchBarDelegate {
     
     func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
         self.searchBar.showsCancelButton = false
+        self.getBestVideo()
     }
     
 }

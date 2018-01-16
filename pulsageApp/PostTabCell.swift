@@ -38,6 +38,9 @@ class PostTabCell: UITableViewCell {
     
     override func layoutSubviews() {
         super.layoutSubviews()
+        
+        self.selectionStyle = .none
+        
         self.addSubview(self.thumbnail)
         self.thumbnail.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
         self.thumbnail.leftAnchor.constraint(equalTo: self.leftAnchor).isActive = true

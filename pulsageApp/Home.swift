@@ -56,6 +56,7 @@ class Home: UIViewController {
             self.present(presenationViewcontroller, animated: true, completion: nil)
             defaults.set("no", forKey: "firstTime")
         }
+        self.navigationController?.navigationBar.topItem?.title = "Trending"
         
     }
     

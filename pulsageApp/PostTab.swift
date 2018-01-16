@@ -60,7 +60,7 @@ extension PostTab: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         switch indexPath.row {
         case 0:
-            let createChallenge = post()
+            let createChallenge = CreateChallenge()
             self.navigationController?.pushViewController(createChallenge, animated: true)
         case 1:
             let recordVideo = CameraRecorded()

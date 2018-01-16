@@ -81,7 +81,8 @@ class CameraRecorded: SwiftyCamViewController {
    
         self.cameraDelegate = self
         self.view.backgroundColor = UIColor.orange
-        self.videoQuality = .resolution640x480
+        //self.videoQuality = .resolution640x480
+        self.videoQuality = .iframe960x540
         self.defaultCamera = .rear
         self.shouldUseDeviceOrientation = true
         self.maxZoomScale = 4.0
