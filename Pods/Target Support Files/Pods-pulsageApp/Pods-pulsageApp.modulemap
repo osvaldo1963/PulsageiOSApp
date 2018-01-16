@@ -1,0 +1,6 @@
+framework module Pods_pulsageApp {
+  umbrella header "Pods-pulsageApp-umbrella.h"
+
+  export *
+  module * { export * }
+}

@@ -1,0 +1,29 @@
+PODS:
+  - Bolts/Tasks (1.8.4)
+  - CryptoSwift (0.7.2)
+  - Eureka (4.0.0)
+  - Font-Awesome-Swift (1.6.2)
+  - Parse (1.15.3):
+    - Bolts/Tasks (~> 1.8)
+  - SDWebImage (4.0.0):
+    - SDWebImage/Core (= 4.0.0)
+  - SDWebImage/Core (4.0.0)
+
+DEPENDENCIES:
+  - CryptoSwift
+  - Eureka
+  - Font-Awesome-Swift
+  - Parse (~> 1.15.0)
+  - SDWebImage
+
+SPEC CHECKSUMS:
+  Bolts: 8a7995239dbe724f9cba2248b766d48b7ebdd322
+  CryptoSwift: cd2158be2bf639aabc63ec804707c7137c90157c
+  Eureka: c0b55d2aec82050c1400c7d65960b700be8d10ef
+  Font-Awesome-Swift: 4dc96df73b5f32aaccdee50a454c3ec253ee4977
+  Parse: cdc0f1f975ee8be0409e66f21b05df4ae067047c
+  SDWebImage: 76a6348bdc74eb5a55dd08a091ef298e56b55e41
+
+PODFILE CHECKSUM: 55b61b0350bb65fab2b3a23531d7ec44498b5ea1
+
+COCOAPODS: 1.3.1
