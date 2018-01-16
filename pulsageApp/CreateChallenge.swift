@@ -1,7 +1,7 @@
 import UIKit
 import Parse
 
-class post: UIViewController {
+class CreateChallenge: UIViewController {
     
     fileprivate var categorie = ["Select a category"]
     fileprivate var categorieId = ["0"]
