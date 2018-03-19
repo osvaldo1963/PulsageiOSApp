@@ -1,5 +1,6 @@
 import UIKit
 import Font_Awesome_Swift
+import ActiveLabel
 
 class sectionFooter: UIView {
     
@@ -9,14 +10,13 @@ class sectionFooter: UIView {
         return view
     }()
     
-    public lazy var VideoDescription: UITextView = {
-        let label = UITextView()
+    public lazy var VideoDescription: ActiveLabel = {
+        let label = ActiveLabel()
         label.text = ""
         label.textColor = .black
-        label.isEditable = false
-        label.isSelectable = true
-        label.dataDetectorTypes = .link
-        
+        label.numberOfLines = 3
+        label.enabledTypes = [.hashtag]
+        label.font = UIFont.systemFont(ofSize: 14)
         return label
     }()
     
@@ -57,7 +57,7 @@ class sectionFooter: UIView {
     private func subViews() {
         self.addSubview(self.VideoDescription)
         self.VideoDescription.frame = CGRect(x: 10, y: 5, width: frame.size.width / 4 * 3, height: frame.size.height - 20)
-        self.VideoDescription.resolveHashTags()
+    
         
         self.addSubview(self.ChallengeText)
         self.ChallengeText.frame = CGRect(x: frame.size.width / 4 * 3 , y: 5, width: frame.size.width / 4 , height: 20)

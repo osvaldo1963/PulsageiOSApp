@@ -3,10 +3,10 @@ import Parse
 
 class ChallengeTab: UIViewController {
     
-    public var PFObjectData: PFObject?
+    public var PFObjectData = ""
     
     private let cellId = "cellid"
-    private var challengesForTable = [PFObject]()
+    private var challengesForTable: [PFObject] = []
     
     private lazy var  header: ChallengeHeader = {
         let header = ChallengeHeader()
@@ -42,12 +42,10 @@ class ChallengeTab: UIViewController {
         //
         
         //Data functions
-        DispatchQueue.global(qos:.utility).async {
+        DispatchQueue.global(qos: .userInteractive).async {
             self.setHeaderData()
         }
-        DispatchQueue.global(qos: .utility).async {
-            self.getVideosForChallenge()
-        }
+        
         ///
     }
     
@@ -58,9 +56,10 @@ class ChallengeTab: UIViewController {
     }
     //UI Props
     private func navigationProps() {
-        guard let challengeData = self.PFObjectData else {return}
-        guard let navigationTitle = challengeData["title"] as? String else {return}
-        self.navigationController?.navigationBar.topItem?.title = navigationTitle
+        //let challengeData = self.PFObjectData
+        
+        //guard let navigationTitle = challengeData["title"] as? String else {return}
+        //self.navigationController?.navigationBar.topItem?.title = navigationTitle
     }
     
     private func setViewControllerProps() {
@@ -82,24 +81,77 @@ class ChallengeTab: UIViewController {
     
     //Mark: Data functions
     private func setHeaderData() {
-        guard let challengeData = self.PFObjectData else {return}
-        guard let user = challengeData["User"] as? PFObject else {return}
-        user.fetchInBackground { (object, error) in
-            guard let userData = object else {return}
-            guard let objectFiel = userData["profilePicture"] as? PFFile else {return}
-            guard let PictureUrl = objectFiel.url else {return}
-            guard let urlLink  = URL(string: PictureUrl) else {return}
-            guard let userName = userData["username"] as? String else {return}
-            self.header.creatorProfileBtn.setTitle("@\(userName.getTextFromEmail())", for: .normal)
-            self.header.challengeCreatorImage.sd_setImage(with: urlLink)
+        let challengeData = self.PFObjectData
+        
+        let query = PFQuery(className: "Challenges")
+        query.whereKey("objectId", equalTo: challengeData)
+        query.getFirstObjectInBackground { (data, error) in
+            if error == nil {
+                guard let challenge = data else {return}
+                self.getVideosForChallenge(challengeData: challenge)
+                
+                
+                guard let user = challenge["User"] as? PFObject else {return}
+                user.fetchInBackground { (object, error) in
+                    if error == nil {
+                        guard let userData = object else {return}
+                        guard let objectFiel = userData["profilePicture"] as? PFFile else {return}
+                        guard let PictureUrl = objectFiel.url else {return}
+                        guard let urlLink  = URL(string: PictureUrl) else {return}
+                        guard let userName = userData["username"] as? String else {return}
+                        self.header.creatorProfileBtn.setTitle("@\(userName.getTextFromEmail())", for: .normal)
+                        self.header.challengeCreatorImage.sd_setImage(with: urlLink)
+                    }
+                    
+                }
+            }
         }
+        /*
+        challengeData.fetchFromLocalDatastoreInBackground { (data, error) in
+            if error == nil {
+                guard let challenge = data else {return}
+                guard let user = challenge["User"] as? PFObject else {return}
+                user.fetchInBackground { (object, error) in
+                    if error == nil {
+                        guard let userData = object else {return}
+                        guard let objectFiel = userData["profilePicture"] as? PFFile else {return}
+                        guard let PictureUrl = objectFiel.url else {return}
+                        guard let urlLink  = URL(string: PictureUrl) else {return}
+                        guard let userName = userData["username"] as? String else {return}
+                        self.header.creatorProfileBtn.setTitle("@\(userName.getTextFromEmail())", for: .normal)
+                        self.header.challengeCreatorImage.sd_setImage(with: urlLink)
+                    }
+                    
+                }
+                self.getVideosForChallenge(challengeData: challenge)
+            }
+        }
+        */
         
     }
     
-    private func getVideosForChallenge() {
-        guard let challengeData = self.PFObjectData else {return}
-        guard let challengeId = challengeData.objectId else {return}
+    private func getVideosForChallenge(challengeData: PFObject) {
         
+        //guard let challengeId = challengeData.objectId else {return}
+        let query = PFQuery(className: "Videos")
+        query.whereKey("Challenges", equalTo: challengeData)
+        query.findObjectsInBackground { (data, error) in
+            if error == nil {
+                guard let result = data else {return}
+                if result.count == 0 {
+                    self.navigationController?.popViewController(animated: true)
+                } else {
+                    self.header.objects = self.voteCount(videos: result) //<======= Call Vote count function
+                    self.challengesForTable = result
+                    DispatchQueue.main.async {
+                        self.tableview.reloadData()
+                        self.header.pageController.reloadData()
+                        self.activityIndicator.stopAnimating()
+                    }
+                }
+            }
+        }
+        /*
         PFCloud.callFunction(inBackground: "getChallenges", withParameters: ["challenge": challengeId]) { (result, error) in
             if error == nil {
                 guard let object = result as? [PFObject] else {return}
@@ -112,10 +164,12 @@ class ChallengeTab: UIViewController {
                 }
                 
             } else {
-                print("error Back: \(error.debugDescription)")
+             
+                self.activityIndicator.stopAnimating()
             }
             
         }
+ */
     }
     
     

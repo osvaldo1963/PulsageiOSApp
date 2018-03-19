@@ -4,8 +4,8 @@ import Parse
 class HashTag: UIViewController {
     
     public var hashTagString = ""
-    private var dataHolder = [PFObject]()
-    private let collectionid = "id"
+    private var dataHolder: [PFObject] = []
+    fileprivate let collectionid = "id"
     
     private lazy var followBtn: UIButton = {
         let button = UIButton()
@@ -23,7 +23,7 @@ class HashTag: UIViewController {
         layout.minimumInteritemSpacing = 1
         
         let cframe = CGRect(x: 0, y: 0, width: 0, height: 0)
-        let coll = UICollectionView(frame: cframe, collectionViewLayout: layout)
+        let coll = UICollectionView(frame: CGRect.zero, collectionViewLayout: layout)
         coll.register(SearchSQCell.self, forCellWithReuseIdentifier: self.collectionid)
         coll.delegate = self
         coll.dataSource = self
@@ -34,53 +34,79 @@ class HashTag: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.view.backgroundColor = .white
         self.addsubviews()
+        
     }
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-      
+        DispatchQueue.global(qos: .userInteractive).async {
+            self.gethashtag()
+        }
+        
         
     }
     
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        //self.hashTagString = ""
+    }
+    
     //Mark: Get Hashtag data
-    private func getHashtagData(hashtag: String) -> PFObject? {
+    private func getHashtagData(hashtag: String) -> String {
         let query = PFQuery(className: "hashtag")
         query.whereKey("tittle", equalTo: hashtag)
         do {
             let result = try query.getFirstObject()
-            return result
+            
+            guard let id = result.objectId else {return String()}
+            return id
         } catch {
-            print(error)
-            return nil
+            return "nto data"
         }
         
     }
     
     private func gethashtag() {
-        guard let hash = self.getHashtagData(hashtag: self.hashTagString) else {return}
+        self.dataHolder.removeAll()
+        DispatchQueue.main.async {
+            self.collection.reloadData()
+        }
+        
+        
+        let hash = self.getHashtagData(hashtag: self.hashTagString)
         let query = PFQuery(className: "Videos")
-        query.whereKey("", equalTo: hash)
+        query.whereKey("hashtags", equalTo: hash)
         query.findObjectsInBackground { (result, error) in
             if error == nil {
                 guard let data = result else {return}
-                print(data)
+                self.dataHolder = data
+                DispatchQueue.main.async {
+                    self.collection.reloadData()
+                }
+            
+            } else {
+                print("no daya")
             }
         }
     }
     
     //Mark: Set Visual Objects into view
     private func addsubviews() {
+        
+        self.view.addSubview(self.followBtn)
+        self.followBtn.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
+        self.followBtn.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor).isActive = true
+        self.followBtn.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor).isActive = true
+        self.followBtn.heightAnchor.constraint(equalToConstant: 60).isActive = true
+        
         self.view.addSubview(self.collection)
-        self.collection.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
+        self.collection.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 80).isActive = true
         self.collection.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor).isActive = true
         self.collection.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor).isActive = true
         self.collection.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
         
-        self.collection.addSubview(self.followBtn)
-        self.followBtn.topAnchor.constraint(equalTo: self.collection.topAnchor).isActive = true
-        self.followBtn.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor).isActive = true
-        self.followBtn.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor).isActive = true
-        self.followBtn.heightAnchor.constraint(equalToConstant: 40).isActive = true
+        
     }
 }
 
@@ -95,7 +121,7 @@ extension HashTag: UICollectionViewDelegate, UICollectionViewDataSource {
         }
         
         let row = self.dataHolder[indexPath.row]
-        guard let PFfile = row["thumbnial"] as? PFFile else {return UICollectionViewCell()}
+        guard let PFfile = row["thumbnail"] as? PFFile else {return UICollectionViewCell()}
         guard let fileurl = PFfile.url else {return UICollectionViewCell()}
         guard let url = URL(string: fileurl) else {return UICollectionViewCell()}
         collectionCell.Thumbnail.sd_setImage(with: url, completed: nil)

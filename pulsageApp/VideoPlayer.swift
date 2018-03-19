@@ -72,7 +72,7 @@ class VideoPlayer: UIViewController {
         super.viewDidLoad()
         self.view.backgroundColor = UIColor(red:0.98, green:0.98, blue:0.98, alpha:1.0)
         self.subviews()
-        DispatchQueue.global(qos: .userInitiated).async {
+        DispatchQueue.global(qos: .userInteractive).async {
             self.setVideoData()
             self.getComments()
            
@@ -83,7 +83,7 @@ class VideoPlayer: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        self.player.play()
+     
         
         self.navigationBarProp()
        
@@ -98,6 +98,7 @@ class VideoPlayer: UIViewController {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         self.player.pause()
+        self.controller.player = nil
         
     }
     
@@ -198,6 +199,7 @@ class VideoPlayer: UIViewController {
         self.player = AVPlayer(url: url)
         self.controller.player = self.player
         
+        self.player.play()
         
         guard let videoResolution = self.resolutionForLocalVideo(url: url) else {
             return
@@ -205,7 +207,7 @@ class VideoPlayer: UIViewController {
         //self.player.play()
         if videoResolution.width < videoResolution.height {
             DispatchQueue.main.async {
-                self.controller.videoGravity = AVLayerVideoGravity.resizeAspectFill.rawValue
+                //self.controller.videoGravity = AVLayerVideoGravity.resizeAspectFill.rawValue
             }
         }
         
@@ -256,14 +258,15 @@ class VideoPlayer: UIViewController {
     }
     //===============================================
     
-    private func voteCount() {
+    private func voteCount(head: TbHeader) {
         let videoVotes = self.videdata
         let relation = videoVotes?.relation(forKey: "Vote")
         let relationQuery = relation?.query()
         relationQuery?.findObjectsInBackground(block: { (objects, error) in
             if error == nil {
                 guard let votes = objects else {return}
-                print(votes.count)
+                head.voteText.text = "Votes \(votes.count)"
+                head.votetBtn.setFATitleColor(color: .red, forState: .normal)
             } else {
                 self.simpleAlert(Message: "Check your internet Connection", title: "Error Voting")
             }
@@ -291,20 +294,27 @@ class VideoPlayer: UIViewController {
         self.present(vc, animated: true, completion: nil)
     }
     
-    @objc fileprivate func VoteBtn() {
+    @objc fileprivate func VoteBtn(header: VoteBtn) {
+        guard let hd = header.header else {return}
         guard let currentVideo = self.videdata else {return}
         guard let user = PFUser.current() else {return}
         let vote = currentVideo.relation(forKey: "Vote")
         vote.add(user)
         currentVideo.saveInBackground { (success, error) in
             if error == nil {
-                print(success)
-                self.voteCount()
+                self.voteCount(head: hd)
             } else {
-                print(error)
+                print(error.debugDescription)
             }
         }
         
+    }
+    @objc private func presentprofile(sender: GestureRescognizer) {
+        
+        guard let data = sender.data else {return}
+        let profileTab = ProfileTab()
+        profileTab.userObject = data
+        self.navigationController?.pushViewController(profileTab, animated: true)
     }
     
     //============================================
@@ -345,7 +355,8 @@ extension VideoPlayer: UITableViewDelegate, UITableViewDataSource {
             tableHeader.segmented.currentButton = self.buttonPressed
             tableHeader.segmented.ButtonTitles = ["Comments", "Similar Videos"]
             tableHeader.segmented.delegate = self
-            tableHeader.votetBtn.addTarget(self, action: #selector(VoteBtn), for: .touchUpInside)
+            tableHeader.votetBtn.header = tableHeader
+            tableHeader.votetBtn.addTarget(self, action: #selector(self.VoteBtn(header:)), for: .touchUpInside)
             tableHeader.reportBtn.addTarget(self, action: #selector(self.ReportBtn), for: .touchUpInside)
             //user data
             guard let user = self.videdata["User"] as? PFUser else {return UIView()}
@@ -424,6 +435,10 @@ extension VideoPlayer: UITableViewDelegate, UITableViewDataSource {
                         guard let userpicFile = data["profilePicture"] as? PFFile else {return}
                         guard let picUrl = userpicFile.url else {return}
                         guard let url = URL(string: picUrl) else {return}
+                        let tapGesture = GestureRescognizer(target: self, action: #selector(self.presentprofile(sender:)))
+                        tapGesture.data = data
+                        commentsCell.profilePicture.isUserInteractionEnabled = true
+                        commentsCell.profilePicture.addGestureRecognizer(tapGesture)
                         commentsCell.profilePicture.sd_setImage(with: url)
                         commentsCell.linkToProfile.setTitle("@\(username.getTextFromEmail())", for: .normal)
                     }
@@ -455,6 +470,11 @@ extension VideoPlayer: UITableViewDelegate, UITableViewDataSource {
                         guard let profileFile = userdata["profilePicture"] as? PFFile else {return}
                         guard let profileurl = profileFile.url else {return}
                         guard let profileToUrl = URL(string: profileurl) else {return}
+                        
+                        let tapGesture = GestureRescognizer(target: self, action: #selector(self.presentprofile(sender:)))
+                        tapGesture.data = userdata
+                        videocell.Header.profileImage.addGestureRecognizer(tapGesture)
+                        videocell.Header.profileImage.isUserInteractionEnabled = true
                         videocell.Header.profileImage.sd_setImage(with: profileToUrl)
                         videocell.Header.profileBotton.button.setTitle(" \(username.getTextFromEmail())", for: .normal)
                     }

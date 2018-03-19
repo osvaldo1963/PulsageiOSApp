@@ -242,8 +242,9 @@ extension profile: UITableViewDelegate, UITableViewDataSource {
                 
             case 1:
                 guard let title = indexData["title"] as? String else {return}
+                
                 let challengepage = ChallengeTab()
-                challengepage.PFObjectData = indexData
+                //challengepage.PFObjectData = indexData
                 self.navigationController?.pushViewController(challengepage, animated: true)
             case 2:
                 guard let userid = indexData["FollowingId"] as? String else {return}

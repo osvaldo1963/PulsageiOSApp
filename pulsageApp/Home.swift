@@ -106,7 +106,7 @@ class Home: UIViewController {
     
     
     @objc func presentChallenge(sender: CustomBtn) {
-        guard let obData = sender.object else {return}
+        guard let obData = sender.object?.objectId else {return}
         let challegeview = ChallengeTab()
         challegeview.PFObjectData = obData
         self.navigationController?.pushViewController(challegeview, animated: true)
@@ -129,17 +129,25 @@ class Home: UIViewController {
     
     @objc private func presentProfile(sender: iconButton) {
         guard let data = sender.object else {return}
+
         let profileTab = ProfileTab()
         profileTab.userObject = data
         self.navigationController?.pushViewController(profileTab, animated: true)
     }
     
     @objc private func presentprofile(sender: GestureRescognizer) {
-        print("it is working")
+
         guard let data = sender.data else {return}
         let profileTab = ProfileTab()
         profileTab.userObject = data
         self.navigationController?.pushViewController(profileTab, animated: true)
+    }
+    
+    fileprivate func presentHashTag(hashtag: String) {
+      
+        let hastagPage = HashTag()
+        hastagPage.hashTagString = hashtag
+        self.navigationController?.pushViewController(hastagPage, animated: true)
     }
     
 }
@@ -161,7 +169,6 @@ extension Home: UITableViewDelegate, UITableViewDataSource{
             }
             guard let row = forCell["value"] as? PFObject else {return UITableViewCell()}
             ///video Data
-            
             cell.Footer.rewardBtn.isHidden = true //only for sponsor section
             cell.Header.challengeSponsor.isHidden = true //only for sponsor section
             ///
@@ -174,13 +181,16 @@ extension Home: UITableViewDelegate, UITableViewDataSource{
                     guard let username = data["username"] as? String else {return}
                     guard let userfile = data["profilePicture"] as? PFFile else {return}
                     guard let userPicture = userfile.url else {return}
-                    cell.Header.profileImage.sd_setImage(with: URL(string: userPicture), completed: nil)
                     let tapGesture = GestureRescognizer(target: self, action: #selector(self.presentprofile(sender:)))
                     tapGesture.data = data
                     cell.Header.profileImage.addGestureRecognizer(tapGesture)
+                    cell.Header.profileImage.isUserInteractionEnabled = true
+                    cell.Header.profileImage.sd_setImage(with: URL(string: userPicture), completed: nil)
+                    
                     cell.Header.profileBotton.button.setTitle(" \(username.getTextFromEmail())", for: .normal)
                     cell.Header.profileBotton.button.object = data
                     cell.Header.profileBotton.button.addTarget(self, action: #selector(self.presentProfile(sender:)), for: .touchUpInside)
+                
                     
                 }
             }
@@ -193,9 +203,8 @@ extension Home: UITableViewDelegate, UITableViewDataSource{
             ///Mark: Video Information Footer
             guard let challenge = row["Challenges"] as? PFObject else { return UITableViewCell()}
             guard let videoDescription = row["description"] as?  String else {return UITableViewCell()}
-            cell.Footer.VideoDescription.text = "\(videoDescription)"
-            cell.Footer.VideoDescription.delegate = self
-            //cell.Footer.VideoDescription.attributedText = self.convertHashtags(text: videoDescription)
+            
+            
             guard let challengeId = challenge.objectId else {return UITableViewCell()}
             if challengeId == "nil" {
                 print(challengeId)
@@ -212,7 +221,10 @@ extension Home: UITableViewDelegate, UITableViewDataSource{
                 }
             }
             
-            
+            cell.Footer.VideoDescription.text = "\(videoDescription)"
+            cell.Footer.VideoDescription.handleHashtagTap({ (hash) in
+                self.presentHashTag(hashtag: hash)
+            })
             ///
             return cell
         } else {
@@ -324,7 +336,7 @@ extension Home: UITextViewDelegate {
 
     
     func textView(_ textView: UITextView, shouldInteractWith URL: URL, in characterRange: NSRange) -> Bool {
-       
+        
         guard let type = URL.scheme else {return true}
         let array = Array(textView.text)
         let range = array[characterRange.lowerBound + 1 ... characterRange.upperBound - 1 ]
@@ -332,7 +344,6 @@ extension Home: UITextViewDelegate {
         case "mention":
             print("mention \(String(range))")
         case "hash":
-            print("hash \(String(range))")
             let hastagPage = HashTag()
             hastagPage.hashTagString = String(range)
             self.navigationController?.pushViewController(hastagPage, animated: true)
@@ -344,31 +355,10 @@ extension Home: UITextViewDelegate {
     }
     
     
-    func convertHashtags(text: String) -> NSAttributedString {
-        let attrString = NSMutableAttributedString(string: text)
-        attrString.beginEditing()
-        // match all hashtags
-        do {
-            // Find all the hashtags in our string
-            let regex = try NSRegularExpression(pattern: "(?:\\s|^)(#(?:[a-zA-Z].*?|\\d+[a-zA-Z]+.*?))\\b", options: NSRegularExpression.Options.anchorsMatchLines)
-            let results = regex.matches(in: text ,options: NSRegularExpression.MatchingOptions.withoutAnchoringBounds, range: NSMakeRange(0, text.characters.count))
-            let array = results.map { (text as NSString).substring(with: $0.range) }
-            for hashtag in array {
-                // get range of the hashtag in the main string
-                let range = (attrString.string as NSString).range(of: hashtag)
-                // add a colour to the hashtag
-                attrString.addAttribute(NSAttributedStringKey.foregroundColor, value: UIColor.blue , range: range)
-            }
-            attrString.endEditing()
-        }
-        catch {
-            attrString.endEditing()
-        }
-        return attrString
-    }
+    
 }
 
-class GestureRescognizer: UIGestureRecognizer {
+class GestureRescognizer: UITapGestureRecognizer {
     var data: PFObject?
 }
 

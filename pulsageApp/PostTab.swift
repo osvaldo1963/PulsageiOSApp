@@ -56,8 +56,11 @@ class PostTab: UIViewController {
         
         self.thumbnailForRow.removeAll(keepingCapacity: false)
         self.titleForRow.removeAll(keepingCapacity: false)
+        DispatchQueue.main.async {
+            self.tableview.reloadData()
+        }
         self.thumbnailForRow = [UIImage(named: "postFirst")!, UIImage(named: "postSecond")!]
-        self.titleForRow = ["Create a Challenge", "Reacord a Video"]
+        self.titleForRow = ["Create a Challenge", "Record a Video"]
         
         DispatchQueue.main.async {
             self.tableview.reloadData()

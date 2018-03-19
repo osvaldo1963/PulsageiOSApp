@@ -249,10 +249,10 @@ func += <KeyType, ValueType> ( left: inout Dictionary<KeyType, ValueType>, right
 extension String {
     func NSRangeFromRange(range: Range<String.Index>) -> NSRange {
         let utf16view = self.utf16
-        guard let from = String.UTF16View.Index(range.lowerBound, within: utf16view) else {return NSRange()}
-        guard let to = String.UTF16View.Index(range.upperBound, within: utf16view) else {return NSRange()}
+        let from = String.UTF16View.Index(range.lowerBound, within: utf16view)!
+        let to = String.UTF16View.Index(range.upperBound, within: utf16view)!
         
-        return NSMakeRange(utf16view.distance(from: utf16view.startIndex, to: from),utf16view.distance(from: from, to: to))
+        return NSMakeRange(utf16view.distance(from: utf16view.startIndex, to: from), utf16view.distance(from: from, to: to))
         //return NSMakeRange(utf16view.distance(from: utf16view.startIndex, to: from), utf16view.distance(from: from, to: to))
     }
     
@@ -266,6 +266,7 @@ extension String {
 }
 
 extension UITextView {
+    
     
     public func resolveHashTags(possibleUserDisplayNames:[String]? = nil) {
         
@@ -306,13 +307,14 @@ extension UITextView {
             }
             
             // Drop the # or @
-            var wordWithTagRemoved = String(word.characters.dropFirst())
+            var wordWithTagRemoved = String(word.dropFirst())
             
             // Drop any trailing punctuation
             wordWithTagRemoved.dropTrailingNonAlphaNumericCharacters()
             
             // Make sure we still have a valid word (i.e. not just '#' or '@' by itself, not #100)
-            guard let schemeMatch = scheme, Int(wordWithTagRemoved) == nil && !wordWithTagRemoved.isEmpty else { continue }
+            guard let schemeMatch = scheme, Int(wordWithTagRemoved) == nil && !wordWithTagRemoved.isEmpty
+                else { continue }
             
             let remainingRange = Range(bookmark..<text.endIndex)
             
@@ -329,7 +331,7 @@ extension UITextView {
             }
             
             // just cycled through a word. Move the bookmark forward by the length of the word plus a space
-            bookmark = text.index(bookmark, offsetBy: word.characters.count)
+            bookmark = text.index(bookmark, offsetBy: word.dropFirst().count)
         }
         
         self.attributedText = attributedString
@@ -356,6 +358,57 @@ extension UITextView {
             attrString.endEditing()
         }
         return attrString
+    }
+}
+
+extension UITextView {
+    
+    func resolveHash() {
+        
+        // turn string in to NSString
+        let nsText = NSString(string: self.text)
+        
+        // this needs to be an array of NSString.  String does not work.
+        let words = nsText.components(separatedBy: CharacterSet(charactersIn: "#ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_").inverted)
+        
+        // you can staple URLs onto attributed strings
+        let attrString = NSMutableAttributedString()
+        attrString.setAttributedString(self.attributedText)
+        
+        // tag each word if it has a hashtag
+        for word in words {
+            if word.count < 3 {
+                continue
+            }
+            
+            // found a word that is prepended by a hashtag!
+            // homework for you: implement @mentions here too.
+            if word.hasPrefix("#") {
+                
+                // a range is the character position, followed by how many characters are in the word.
+                // we need this because we staple the "href" to this range.
+                let matchRange:NSRange = nsText.range(of: word as String)
+                
+                // drop the hashtag
+                let stringifiedWord = word.dropFirst()
+                if let firstChar = stringifiedWord.unicodeScalars.first, NSCharacterSet.decimalDigits.contains(firstChar) {
+                    // hashtag contains a number, like "#1"
+                    // so don't make it clickable
+                } else {
+                    // set a link for when the user clicks on this word.
+                    // it's not enough to use the word "hash", but you need the url scheme syntax "hash://"
+                    // note:  since it's a URL now, the color is set to the project's tint color
+                    attrString.addAttribute(NSAttributedStringKey.link, value: "hash:\(stringifiedWord)", range: matchRange)
+                }
+                
+            }
+        }
+        
+        // we're used to textView.text
+        // but here we use textView.attributedText
+        // again, this will also wipe out any fonts and colors from the storyboard,
+        // so remember to re-add them in the attrs dictionary above
+        self.attributedText = attrString
     }
 }
 

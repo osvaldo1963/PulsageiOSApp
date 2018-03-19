@@ -193,6 +193,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                                 query["description"] = "\(descript)"
                                 query["video"] = pffile
                                 query["User"] = user
+                                query["views"] = 0
                                 //code change
                                 if challenge != nil {
                                     query["Challenges"] = challenge
@@ -202,7 +203,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                                 }
                                 //code change
                                 if let hashs = descript.gethashtags() {
-                                    query["hashtags"] = hashs
+                                    query["hashtags"] = self.sendAshTags(hashTags: hashs)
                                 } else {
                                     query["hashtags"] = []
                                 }
@@ -256,6 +257,65 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             // Set a default image if Image is not acquired
         }
         return nil
+    }
+    
+    func sendAshTags(hashTags: [String]) -> [String] {
+        //var holder: [String] = []
+        
+        let map = hashTags.map { (hash) -> String in
+            //var holder: [String] = []
+            let query = PFQuery(className: "hashtag")
+            query.whereKey("tittle", equalTo: hash.dropFirst())
+            do {
+                let check = try query.getFirstObject()
+                guard let object  = check.objectId else {return String()}
+                return object
+                
+            } catch {
+                
+                let insert = PFObject(className: "hashtag")
+                insert["tittle"] = hash.dropFirst()
+                insert.saveEventually({ (success, error) in
+                    print("is beign saved")
+                })
+                
+                let query = PFQuery(className: "hashtag")
+                query.whereKey("tittle", equalTo: hash.dropFirst())
+                do {
+                    let check = try query.getFirstObject()
+                    guard let object  = check.objectId else {return String()}
+                    return object
+                } catch {
+                    return "is is empty "
+                }
+                
+            }
+          
+        }
+        /*
+        for hash in hashTags {
+            let query = PFQuery(className: "hashtag")
+            query.whereKey("tittle", equalTo: hash.dropFirst())
+            do {
+                let check = try query.getFirstObject()
+                if let object  = check.objectId {
+                    holder.append(object)
+                }
+                
+            } catch {
+                print(hash)
+                let insert = PFObject(className: "hashtag")
+                insert["tittle"] = hash.dropFirst()
+                insert.saveEventually()
+                if let id = insert.objectId {
+                    holder.append(id)
+                }
+                
+                   
+            }
+        }
+        */
+        return map
     }
     //=================================================================
     

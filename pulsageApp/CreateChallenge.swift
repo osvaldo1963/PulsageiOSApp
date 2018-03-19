@@ -127,12 +127,9 @@ class CreateChallenge: UIViewController {
         if titleText == "" {
             self.simpleAlert(Message: "Challenge Title Field Can't be empty", title: "Create Challenge Error!")
         } else {
-            
-            
-            /*
             guard let currentUser = PFUser.current() else {return}
             let query = PFObject(className: "Challenges")
-            query["title"] = titleText
+            query["description"] = titleText
             query["User"] = currentUser
             query.saveInBackground(block: { (success, error) in
                 if error == nil {
@@ -141,9 +138,8 @@ class CreateChallenge: UIViewController {
                     }
                 }
             })
-            */
+ 
         }
-    
     }
     /*
     private func gethashtag(text: String) -> [String]? {

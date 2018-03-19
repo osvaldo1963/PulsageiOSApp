@@ -99,12 +99,11 @@ class TbHeader: UIView {
         return btn
     }()
     
-    public lazy var votetBtn: UIButton = {
-        let btn = UIButton()
+    public lazy var votetBtn: VoteBtn = {
+        let btn = VoteBtn()
         btn.translatesAutoresizingMaskIntoConstraints = false
         btn.setFAIcon(icon: .FAFire, iconSize: 25, forState: .normal)
         btn.setTitleColor(.black, for: .normal)
-        //setFAIcon(icon: .FAAngleRight, iconSize: 40, forState: .normal)
         return btn
     }()
     
@@ -237,4 +236,8 @@ class TbHeader: UIView {
         
     }
 
+}
+
+class VoteBtn: UIButton {
+    var header: TbHeader?
 }

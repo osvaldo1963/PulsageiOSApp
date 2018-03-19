@@ -72,24 +72,24 @@ class TabBar: UITabBarController, UITabBarControllerDelegate {
     //Mark: tab bar navigation bar props
     fileprivate func setTabBar() {
         let home        = Home()
-        let homeicon    = UIImage.init(icon: .FAHome, size: CGSize(width: 42, height: 42))
-        let hometabitem = UITabBarItem(title: nil, image: homeicon, tag: 1)
+        let HomeIcon    = UIImage(named: "HomeIcon.png")
+        let hometabitem = UITabBarItem(title: nil, image: HomeIcon, tag: 1)
         
         let searchr       = search()
-        let searchicon    = UIImage.init(icon: .FASearch, size: CGSize(width: 40, height: 40))
-        let searchtabitem = UITabBarItem(title: nil, image: searchicon, tag: 2)
+        let SearchIcon    = UIImage(named: "SearchIcon.png")
+        let searchtabitem = UITabBarItem(title: nil, image: SearchIcon, tag: 2)
 
         let posts       = PostTab()
         let posticon    = UIImage.init(icon: .FAPlusSquareO, size: CGSize(width: 42, height: 42))
         let posttabitem = UITabBarItem(title: nil, image: posticon, tag: 3)
         
         let noti        = notifications()
-        let noticon     = UIImage.init(icon: .FABell, size: CGSize(width: 40, height: 40))
-        let notitabitem = UITabBarItem(title: nil, image: noticon, tag: 4)
+        let NotificationIcon = UIImage(named: "NotificationIcon.png")
+        let notitabitem = UITabBarItem(title: nil, image: NotificationIcon, tag: 4)
         
         let pro        = ProfileTab()
-        let proicon    = UIImage.init(icon: .FAUser, size: CGSize(width: 40, height: 40))
-        let protabitem = UITabBarItem(title: nil, image: proicon, tag: 5)
+        let ProfileIcon = UIImage(named: "ProfileIcon.png")
+        let protabitem = UITabBarItem(title: nil, image: ProfileIcon, tag: 5)
         
         home.tabBarItem    = hometabitem
         searchr.tabBarItem = searchtabitem

@@ -10,6 +10,7 @@ class ProfileTab: UIViewController {
     private let videoCell = "videocell"
     private var currentData = [String: [PFObject]]()
     private var currentTab = ""
+    private var follow = false
     
     
     private lazy var tableHeader: ProfileHeader = {
@@ -50,8 +51,16 @@ class ProfileTab: UIViewController {
         guard let username = user["username"] as? String else {return}
         self.navigationController?.navigationBar.topItem?.title = username.getTextFromEmail()
         
-        let settinsProfile = UIBarButtonItem(image: UIImage.init(icon: .FAGear, size: CGSize(width: 30, height: 30)), style: .done, target: self, action: #selector(self.settignBtn))
-        self.navigationItem.setRightBarButton(settinsProfile, animated: true)
+        guard let current = PFUser.current() else {return}
+      
+       
+                let settins = UIBarButtonItem(title: "Settings", style: .done, target: self, action: #selector(self.settignBtn))
+                self.navigationItem.setRightBarButton(settins, animated: true)
+               
+           
+        
+        
+        
         
         self.checkUserType()
         self.getProfileData(index: 0)
@@ -79,6 +88,7 @@ class ProfileTab: UIViewController {
         guard let user = self.userObject else {return}
         if user == PFUser.current() {
             self.tableHeader.followBtn.isHidden = true
+        
         }
     }
     //Mark: Get Profile Data =======================================================================
@@ -153,8 +163,10 @@ class ProfileTab: UIViewController {
                     self.tableHeader.followers.setTitle("\(follers.count) \n Followers", for: .normal)
                     if back.contains(currentUser.objectId!) {
                         self.tableHeader.followBtn.setTitle("Unfollow", for: .normal)
+                        self.follow = true
                     } else {
                         self.tableHeader.followBtn.setTitle("Follow", for: .normal)
+                        self.follow = false
                     }
                 }
             }
@@ -181,17 +193,32 @@ class ProfileTab: UIViewController {
         guard let currentUser = PFUser.current() else {return}
         guard let user = self.userObject else {return}
         if currentUser != user {
-            let object = PFObject(className: "Follow")
-            object["Followers"] = currentUser
-            object["Following"] = user
-            object.saveInBackground(block: { (success, error) in
-                if error == nil {
-                    if success {
-                        self.getFolling()
-                        self.getFollowers()
+            if follow {
+                let query = PFQuery(className: "Follow")
+                query.whereKey("Followers", equalTo: currentUser)
+                query.whereKey("Following", equalTo: user)
+                query.getFirstObjectInBackground(block: { (back, error) in
+                    if error == nil {
+                        guard let result = back else {return}
+                        result.deleteInBackground(block: { (success, error) in
+                            self.getFolling()
+                            self.getFollowers()
+                        })
                     }
-                }
-            })
+                })
+            } else {
+                let object = PFObject(className: "Follow")
+                object["Followers"] = currentUser
+                object["Following"] = user
+                object.saveInBackground(block: { (success, error) in
+                    if error == nil {
+                        if success {
+                            self.getFolling()
+                            self.getFollowers()
+                        }
+                    }
+                })
+            }
         }
     }
     
@@ -364,8 +391,10 @@ extension ProfileTab: UITableViewDelegate, UITableViewDataSource {
             self.navigationController?.pushViewController(videoplayer, animated: true)
         } else if self.currentTab == "challenges" {
             guard let currentTabData = self.currentData["challenges"] else  {return}
+            let row = currentTabData[indexPath.row]
+            guard let id = row.objectId else {return}
             let challengePage = ChallengeTab()
-            challengePage.PFObjectData = currentTabData[indexPath.row]
+            challengePage.PFObjectData = id
             self.navigationController?.pushViewController(challengePage, animated: true)
         }
     }

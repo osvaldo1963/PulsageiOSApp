@@ -27,6 +27,7 @@ class videoData: UIViewController {
         textview.layer.borderColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.2).cgColor
         textview.layer.borderWidth = 1
         textview.delegate = self
+        textview.autocorrectionType = .no
         textview.font = UIFont.systemFont(ofSize: 16)
         textview.translatesAutoresizingMaskIntoConstraints = false
         return textview
@@ -178,8 +179,7 @@ class videoData: UIViewController {
 
 extension videoData: UITextViewDelegate {
     func textViewDidChange(_ textView: UITextView) {
-        
-        textView.attributedText = self.convertHashtags(text: textView.text)
+        textView.attributedText = convertHashtags(text: textView.text)
         
     }
     
@@ -207,11 +207,11 @@ extension videoData: UITextViewDelegate {
     }
     
     func textViewDidBeginEditing(_ textView: UITextView) {
-        moveTextField(textView, moveDistance: -250, up: true)
+        moveTextField(textView, moveDistance: -210, up: true)
     }
     
     func textViewDidEndEditing(_ textView: UITextView) {
-        moveTextField(textView, moveDistance: -250, up: false)
+        moveTextField(textView, moveDistance: -210, up: false)
     }
     
     func moveTextField(_ textField: UITextView, moveDistance: Int, up: Bool) {
@@ -224,6 +224,8 @@ extension videoData: UITextViewDelegate {
         self.view.frame = self.view.frame.offsetBy(dx: 0, dy: movement)
         UIView.commitAnimations()
     }
+    
+    
     
 }
 

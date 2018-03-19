@@ -40,7 +40,7 @@ class VideoCell: UITableViewCell {
         self.Thubnail.image = nil
         self.Header.profileImage.image = nil
         self.Header.profileBotton.button.setTitle(nil, for: .normal)
-        self.Footer.VideoDescription.text = ""
+        self.Footer.VideoDescription.text = nil
     }
     
     override func layoutSubviews() {
