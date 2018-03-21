@@ -11,13 +11,16 @@ class CommentCell: UITableViewCell {
         return imageview
     }()
     
-    public lazy var linkToProfile: UIButton = {
-        let button = UIButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.setTitleColor(.blue, for: .normal)
-        button.contentHorizontalAlignment = .left
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 14)
-        return button
+    public lazy var linkToProfile: iconButton = {
+        let btn = iconButton()
+        
+        btn.contentHorizontalAlignment = .left
+        btn.setTitle("", for: .normal)
+        btn.setTitleColor(.black, for: .normal)
+        btn.titleLabel?.font = UIFont.systemFont(ofSize: 14)
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        
+        return btn
     }()
     
     public lazy var commentText: UITextView = {

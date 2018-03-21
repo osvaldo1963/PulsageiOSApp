@@ -31,9 +31,9 @@ class FeedbackController: NSObject {
     
     fileprivate lazy var feeblabel: UILabel = {
         let label = UILabel()
-        label.text = "Whart You Think bro?"
+        label.text = "Feedback"
         label.textAlignment = .center
-        label.font = UIFont.systemFont(ofSize: 18)
+        label.font = UIFont.systemFont(ofSize: 22)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -57,7 +57,7 @@ class FeedbackController: NSObject {
     
     private lazy var cancel: UIButton = {
         let button = UIButton()
-        button.setTitle("Skip", for: .normal)
+        button.setTitle("Cancel", for: .normal)
         button.setTitleColor(.black, for: .normal)
         button.layer.borderWidth = 1
         button.layer.borderColor = UIColor.gray.cgColor
@@ -218,7 +218,7 @@ extension FeedbackController: UICollectionViewDataSource {
         for x in (0...indexPath.item).reversed() {
             let path = IndexPath(item: x, section: 0)
             guard let cell = collectionView.cellForItem(at: path) as? RatingCell else {return}
-            cell.StartImage.image = UIImage.init(icon: .FAStar, size: CGSize(width: 50, height: 50), orientation: UIImageOrientation.up, textColor: .blue, backgroundColor: .clear)
+            cell.StartImage.image = UIImage.init(icon: .FAStar, size: CGSize(width: 50, height: 50), orientation: UIImageOrientation.up, textColor: UIColor(red:0.88, green:0.37, blue:0.37, alpha: 1.0), backgroundColor: .clear)
         }
         
         

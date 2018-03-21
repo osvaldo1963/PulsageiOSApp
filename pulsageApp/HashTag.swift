@@ -11,6 +11,7 @@ class HashTag: UIViewController {
         let button = UIButton()
         button.setTitle("Follow", for: .normal)
         button.setTitleColor(.black, for: .normal)
+        button.isHidden = true
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -43,7 +44,7 @@ class HashTag: UIViewController {
         DispatchQueue.global(qos: .userInteractive).async {
             self.gethashtag()
         }
-        
+        self.navigationController?.navigationBar.topItem?.title = "#\(self.hashTagString)"
         
     }
     
@@ -101,7 +102,7 @@ class HashTag: UIViewController {
         self.followBtn.heightAnchor.constraint(equalToConstant: 60).isActive = true
         
         self.view.addSubview(self.collection)
-        self.collection.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 80).isActive = true
+        self.collection.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
         self.collection.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor).isActive = true
         self.collection.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor).isActive = true
         self.collection.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true

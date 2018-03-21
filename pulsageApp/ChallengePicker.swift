@@ -46,7 +46,9 @@ class ChallengePicker: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-    
+        DispatchQueue.global(qos: .userInteractive).async {
+            self.data(title: "")
+        }
         self.view.addSubview(self.mainView)
         self.mainView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 40).isActive = true
         self.mainView.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor).isActive = true
@@ -76,7 +78,7 @@ class ChallengePicker: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         self.view.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.8)
-        self.searchBar.becomeFirstResponder()
+        
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -88,16 +90,9 @@ class ChallengePicker: UIViewController {
     @objc fileprivate func dismissView() {
         self.dismiss(animated: true, completion: nil)
     }
-    
-    
-}
-
-extension ChallengePicker: UISearchBarDelegate {
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        
-        guard let searchObject = searchBar.text else {return}
+    @objc fileprivate func data(title: String) {
         let query = PFQuery(className: "Challenges")
-        query.whereKey("description", contains: searchObject)
+        query.whereKey("description", contains: title)
         query.findObjectsInBackground { (challenges, error) in
             guard let results = challenges as? [PFObject] else {return}
             self.searchHolder = results
@@ -106,6 +101,14 @@ extension ChallengePicker: UISearchBarDelegate {
                 
             }
         }
+    }
+    
+}
+
+extension ChallengePicker: UISearchBarDelegate {
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        guard let searchT = searchBar.text else {return}
+        self.data(title: searchT)
         
     }
     
@@ -116,11 +119,23 @@ extension ChallengePicker: UISearchBarDelegate {
     
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
         self.searchBar.showsCancelButton = true
+        self.moveTextField(searchBar, moveDistance: -220, up: true)
     }
     
     func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
         self.searchBar.showsCancelButton = false
-      
+        self.moveTextField(searchBar, moveDistance: -220, up: true)
+    }
+    
+    func moveTextField(_ textField: UISearchBar, moveDistance: Int, up: Bool) {
+        let moveDuration = 0.2
+        let movement: CGFloat = CGFloat(up ? moveDistance : -moveDistance)
+        
+        UIView.beginAnimations("animateTextField", context: nil)
+        UIView.setAnimationBeginsFromCurrentState(true)
+        UIView.setAnimationDuration(moveDuration)
+        self.tableview.frame = CGRect(x: 0, y: 80, width: Int(self.view.frame.size.width), height: Int(self.view.frame.size.height) - moveDistance)
+        UIView.commitAnimations()
     }
 }
 
@@ -138,9 +153,7 @@ extension ChallengePicker: UITableViewDelegate, UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: self.tablecell, for: indexPath)
         let rowObject = self.searchHolder[indexPath.row]
         guard let rowDescript = rowObject["description"] as? String else {return UITableViewCell()}
-        guard let rowTitle = rowObject["title"] as? String else {return UITableViewCell()}
-        cell.textLabel?.text = rowTitle
-        cell.detailTextLabel?.text = rowDescript
+        cell.textLabel?.text = rowDescript
         return cell
     }
     

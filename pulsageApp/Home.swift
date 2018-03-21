@@ -85,13 +85,15 @@ class Home: UIViewController {
         self.dataHolder.removeAll(keepingCapacity: false)
         DispatchQueue.main.async {
             self.tableview.reloadData()
-        }
+        } 
+        
         PFCloud.callFunction(inBackground: "getVideos", withParameters: ["": ""], block: { (re, error) in
             
             DispatchQueue.main.async {
                 if let data = re as? [[String: Any]]  {
                     self.dataHolder = data
                 }
+                
                 self.activityIndicator.stopAnimating()
                 self.tableview.reloadData()
                 self.refreshController.endRefreshing()
@@ -189,6 +191,7 @@ extension Home: UITableViewDelegate, UITableViewDataSource{
                     
                     cell.Header.profileBotton.button.setTitle(" \(username.getTextFromEmail())", for: .normal)
                     cell.Header.profileBotton.button.object = data
+                
                     cell.Header.profileBotton.button.addTarget(self, action: #selector(self.presentProfile(sender:)), for: .touchUpInside)
                 
                     

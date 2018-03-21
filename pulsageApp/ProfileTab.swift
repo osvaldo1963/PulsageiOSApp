@@ -50,14 +50,14 @@ class ProfileTab: UIViewController {
         guard let user = self.userObject else {return}
         guard let username = user["username"] as? String else {return}
         self.navigationController?.navigationBar.topItem?.title = username.getTextFromEmail()
-        
+       /*
         guard let current = PFUser.current() else {return}
       
        
                 let settins = UIBarButtonItem(title: "Settings", style: .done, target: self, action: #selector(self.settignBtn))
                 self.navigationItem.setRightBarButton(settins, animated: true)
                
-           
+        */
         
         
         
@@ -356,7 +356,7 @@ extension ProfileTab: UITableViewDelegate, UITableViewDataSource {
             } else {
                 guard let dataForChallenges = data["challenges"] else {return UITableViewCell()}
                 let dataForRow = dataForChallenges[indexPath.row]
-                guard let challengeTitle = dataForRow["title"] as? String else {return UITableViewCell()}
+                guard let challengeTitle = dataForRow["description"] as? String else {return UITableViewCell()}
                 let challengesCell = tableView.dequeueReusableCell(withIdentifier: self.challengeCell, for: indexPath)
                 challengesCell.textLabel?.text = challengeTitle
                 return challengesCell

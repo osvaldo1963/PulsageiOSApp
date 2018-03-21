@@ -65,6 +65,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             }
         }
         
+        PFPush.subscribeToChannel(inBackground: "globalChannel") { (success, error) in
+            if error == nil {
+                if success {
+                    //channel connected successfuly
+                } else {
+                    
+                }
+            }
+        }
+        
+        
+        
     }
     
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {

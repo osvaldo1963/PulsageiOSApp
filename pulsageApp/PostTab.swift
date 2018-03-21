@@ -19,9 +19,11 @@ class PostTab: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+       
         DispatchQueue.global(qos: .userInteractive).async {
             self.loadImages()
         }
+        
         self.addsubViews()
         self.view.backgroundColor = .white
         self.imagepickerController.delegate = self
@@ -54,8 +56,8 @@ class PostTab: UIViewController {
     
     private func loadImages() {
         
-        self.thumbnailForRow.removeAll(keepingCapacity: false)
-        self.titleForRow.removeAll(keepingCapacity: false)
+        self.thumbnailForRow.removeAll()
+        self.titleForRow.removeAll()
         DispatchQueue.main.async {
             self.tableview.reloadData()
         }

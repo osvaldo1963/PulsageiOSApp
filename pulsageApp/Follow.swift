@@ -23,6 +23,7 @@ class Follow: UIViewController {
         table.delegate = self
         table.dataSource = self
         table.register(UserCell.self, forCellReuseIdentifier: self.tableviewcellId)
+        table.allowsSelection = true
         table.translatesAutoresizingMaskIntoConstraints = false
         return table
     }()
@@ -45,6 +46,8 @@ class Follow: UIViewController {
     }
     
     @objc private func getdata() {
+        self.dataHolder.removeAll()
+        self.tableview.reloadData()
         if self.type == "followers" {
             let query = PFQuery(className: "Follow")
             query.whereKey("Following", equalTo: self.userObject)
@@ -59,6 +62,7 @@ class Follow: UIViewController {
                     self.dataHolder = back
                     DispatchQueue.main.async {
                         self.tableview.reloadData()
+                        self.refreshController.endRefreshing()
                     }
                 }
             }
@@ -75,6 +79,7 @@ class Follow: UIViewController {
                     self.dataHolder = back
                     DispatchQueue.main.async {
                         self.tableview.reloadData()
+                        self.refreshController.endRefreshing()
                     }
                 }
             }
@@ -104,14 +109,21 @@ extension Follow: UITableViewDelegate, UITableViewDataSource {
                 guard let picUrl = picFile.url else {return}
                 guard let url = URL(string: picUrl) else {return}
                 cell.profilePicture.sd_setImage(with: url, completed: nil)
+                cell.textback.isHidden = true
             }
         }
-        print(forRow)
-        return cell
+                return cell
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 80
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        print(indexPath.row)
+        let profileTab = ProfileTab()
+        profileTab.userObject = self.dataHolder[indexPath.row]
+        self.navigationController?.pushViewController(profileTab, animated: true)
     }
     
 }
