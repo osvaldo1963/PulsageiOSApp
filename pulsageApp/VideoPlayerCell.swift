@@ -28,8 +28,9 @@ class VideoPlayerCell: UITableViewCell {
     
     override func layoutSubviews() {
         
-        self.selectionStyle = .none
+        
         super.layoutSubviews()
+        self.selectionStyle = .none
         
         self.addSubview(self.videoThumbnail)
         self.videoThumbnail.topAnchor.constraint(equalTo: self.topAnchor, constant: 10).isActive = true

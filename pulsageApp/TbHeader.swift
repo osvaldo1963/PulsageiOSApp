@@ -15,7 +15,7 @@ class TbHeader: UIView {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 12, weight: UIFont.Weight(rawValue: 10))
         label.textColor = .black
-        label.text = "Joe Biden"
+        label.text = ""
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -47,25 +47,6 @@ class TbHeader: UIView {
         return textview
     }()
     
-    public lazy var ChallengeText: UILabel = {
-        let label = UILabel()
-        label.textColor = .orange
-        label.font = UIFont.systemFont(ofSize: 12)
-        label.text = "Challenge"
-        label.textAlignment = .center
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    public lazy var ArrowBtn: CustomBtn = {
-        let button = CustomBtn()
-        button.setTitleColor(.orange, for: .normal)
-        button.contentHorizontalAlignment = .center
-        button.setFAIcon(icon: .FAAngleRight, iconSize: 30, forState: .normal)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
-    
     private lazy var Firstseparator: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.1)
@@ -81,14 +62,12 @@ class TbHeader: UIView {
         return btn
     }()
     
-    public lazy var reportText: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = .orange
-        label.text = "Report"
-        label.font = UIFont.systemFont(ofSize: 10)
-        label.textAlignment = .center
-        return label
+    public var rocketIcon: CustomBtn = {
+        let btn = CustomBtn()
+        let icon = UIImage(named: "transport")
+        btn.setImage(icon, for: .normal)
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        return btn
     }()
     
     public lazy var sharetBtn: UIButton = {
@@ -96,13 +75,15 @@ class TbHeader: UIView {
         btn.translatesAutoresizingMaskIntoConstraints = false
         btn.setFAIcon(icon: .FAShare, iconSize: 25, forState: .normal)
         btn.setTitleColor(.black, for: .normal)
+        btn.isEnabled = false
         return btn
     }()
     
-    public lazy var votetBtn: VoteBtn = {
-        let btn = VoteBtn()
+    public lazy var votetBtn: CustomBtn = {
+        let btn = CustomBtn()
         btn.translatesAutoresizingMaskIntoConstraints = false
-        btn.setFAIcon(icon: .FAFire, iconSize: 25, forState: .normal)
+        let icon = UIImage(named: "heart")
+        btn.setImage(icon, for: .normal)
         btn.setTitleColor(.black, for: .normal)
         return btn
     }()
@@ -134,14 +115,20 @@ class TbHeader: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         self.backgroundColor = .white
-        self.Subviews()
     }
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        self.Subviews()
+       
+    }
+    
     private func Subviews() {
+        let withAndHeight: CGFloat = 30
         
         self.addSubview(self.profilePic)
         self.profilePic.topAnchor.constraint(equalTo: self.topAnchor, constant: 15).isActive = true
@@ -171,57 +158,39 @@ class TbHeader: UIView {
         self.addSubview(self.videoDescription)
         self.videoDescription.topAnchor.constraint(equalTo: self.profilePic.bottomAnchor, constant: 10).isActive = true
         self.videoDescription.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 20).isActive = true
-        self.videoDescription.widthAnchor.constraint(equalToConstant: frame.size.width / 3 * 2).isActive = true
-        self.videoDescription.heightAnchor.constraint(equalToConstant: 60).isActive = true
+        self.videoDescription.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -20).isActive = true
+        self.videoDescription.heightAnchor.constraint(equalToConstant: 40).isActive = true
         
-        self.addSubview(self.ChallengeText)
-        self.ChallengeText.topAnchor.constraint(equalTo: self.profilePic.bottomAnchor, constant: 10).isActive = true
-        self.ChallengeText.rightAnchor.constraint(equalTo: self.rightAnchor).isActive = true
-        self.ChallengeText.widthAnchor.constraint(equalToConstant: frame.size.width / 4).isActive = true
-        self.ChallengeText.heightAnchor.constraint(equalToConstant: 15).isActive = true
-        
-        self.addSubview(self.ArrowBtn)
-        self.ArrowBtn.topAnchor.constraint(equalTo: self.ChallengeText.bottomAnchor).isActive = true
-        self.ArrowBtn.rightAnchor.constraint(equalTo: self.rightAnchor).isActive = true
-        self.ArrowBtn.widthAnchor.constraint(equalToConstant: frame.size.width / 4).isActive = true
-        self.ArrowBtn.heightAnchor.constraint(equalToConstant: 45).isActive = true
-        
-        self.addSubview(self.Firstseparator)
-        self.Firstseparator.topAnchor.constraint(equalTo: self.videoDescription.bottomAnchor, constant: 15).isActive = true
-        self.Firstseparator.leftAnchor.constraint(equalTo: self.leftAnchor).isActive = true
-        self.Firstseparator.rightAnchor.constraint(equalTo: self.rightAnchor).isActive = true
-        self.Firstseparator.heightAnchor.constraint(equalToConstant: 1).isActive = true
-        
-        self.addSubview(self.reportBtn)
-        self.reportBtn.topAnchor.constraint(equalTo: self.Firstseparator.topAnchor).isActive = true
-        self.reportBtn.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 20).isActive = true
-        self.reportBtn.widthAnchor.constraint(equalToConstant: 50).isActive = true
-        self.reportBtn.heightAnchor.constraint(equalToConstant: 50).isActive = true
-        
-        self.addSubview(self.reportText)
-        self.reportText.topAnchor.constraint(equalTo: self.reportBtn.bottomAnchor, constant: -10).isActive = true
-        self.reportText.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 20).isActive = true
-        self.reportText.widthAnchor.constraint(equalToConstant: 50).isActive = true
-        self.reportText.heightAnchor.constraint(equalToConstant: 20).isActive = true
-        
-        self.addSubview(self.sharetBtn)
-        self.sharetBtn.topAnchor.constraint(equalTo: self.Firstseparator.topAnchor).isActive = true
-        self.sharetBtn.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
-        self.sharetBtn.heightAnchor.constraint(equalToConstant: 50).isActive = true
-        self.sharetBtn.widthAnchor.constraint(equalToConstant: 50).isActive = true
+        self.addSubview(self.rocketIcon)
+        self.rocketIcon.topAnchor.constraint(equalTo: self.videoDescription.bottomAnchor, constant: 20).isActive = true
+        self.rocketIcon.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 20).isActive = true
+        self.rocketIcon.heightAnchor.constraint(equalToConstant: withAndHeight).isActive = true
+        self.rocketIcon.widthAnchor.constraint(equalToConstant: withAndHeight).isActive = true
         
         self.addSubview(self.votetBtn)
-        self.votetBtn.topAnchor.constraint(equalTo: self.Firstseparator.topAnchor).isActive = true
-        self.votetBtn.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -20).isActive = true
-        self.votetBtn.heightAnchor.constraint(equalToConstant: 50).isActive = true
-        self.votetBtn.widthAnchor.constraint(equalToConstant: 50).isActive = true
+        self.votetBtn.topAnchor.constraint(equalTo: self.videoDescription.bottomAnchor, constant: 20).isActive = true
+        self.votetBtn.leftAnchor.constraint(equalTo: self.rocketIcon.rightAnchor, constant: 20).isActive = true
+        self.votetBtn.heightAnchor.constraint(equalToConstant: withAndHeight).isActive = true
+        self.votetBtn.widthAnchor.constraint(equalToConstant: withAndHeight).isActive = true
         
         self.addSubview(self.voteText)
         self.voteText.topAnchor.constraint(equalTo: self.votetBtn.bottomAnchor, constant: -10).isActive = true
-        self.voteText.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -20).isActive = true
-        self.voteText.widthAnchor.constraint(equalToConstant: 50).isActive = true
-        self.voteText.heightAnchor.constraint(equalToConstant: 20).isActive = true
+        self.voteText.leftAnchor.constraint(equalTo: self.rocketIcon.rightAnchor, constant: 20).isActive = true
+        self.voteText.widthAnchor.constraint(equalToConstant: withAndHeight).isActive = true
+        self.voteText.heightAnchor.constraint(equalToConstant: withAndHeight).isActive = true
         
+        self.addSubview(self.sharetBtn)
+        self.sharetBtn.topAnchor.constraint(equalTo: self.videoDescription.bottomAnchor, constant: 20).isActive = true
+        self.sharetBtn.leftAnchor.constraint(equalTo: self.votetBtn.rightAnchor, constant: 20).isActive = true
+        self.sharetBtn.heightAnchor.constraint(equalToConstant: withAndHeight).isActive = true
+        self.sharetBtn.widthAnchor.constraint(equalToConstant: withAndHeight).isActive = true
+        
+        self.addSubview(self.reportBtn)
+        self.reportBtn.topAnchor.constraint(equalTo: self.videoDescription.bottomAnchor, constant: 20).isActive = true
+        self.reportBtn.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -20).isActive = true
+        self.reportBtn.widthAnchor.constraint(equalToConstant: withAndHeight).isActive = true
+        self.reportBtn.heightAnchor.constraint(equalToConstant: withAndHeight).isActive = true
+    
         self.addSubview(self.Secondseparator)
         self.Secondseparator.topAnchor.constraint(equalTo: self.sharetBtn.bottomAnchor, constant: 15).isActive = true
         self.Secondseparator.leftAnchor.constraint(equalTo: self.leftAnchor).isActive = true

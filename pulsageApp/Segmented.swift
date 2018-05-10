@@ -55,8 +55,9 @@ extension Segmented: UICollectionViewDelegate, UICollectionViewDataSource {
         let images = self.ImagesArray 
         cell.backgroundColor = UIColor(red:0.93, green:0.93, blue:0.93, alpha:1.0)
         cell.addSubview(imageview)
-        imageview.frame = CGRect(x: cell.frame.size.width / 2 - 20, y: 10, width: 30, height: 30)
+        imageview.frame = CGRect(x: cell.frame.size.width / 2 - 20, y: 10, width: 25, height: 25)
         imageview.image = images[indexPath.row]
+        imageview.contentMode = .scaleAspectFill
         return cell
     }
     

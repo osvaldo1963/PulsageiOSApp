@@ -14,7 +14,7 @@ class UserProfile: UIViewController {
     fileprivate var currentUserProfile = false
     fileprivate var profileimageurl = ""
     fileprivate var name = ""
-    fileprivate var parseData = ParseData()
+    fileprivate var parseData = ParseFunctions()
     fileprivate var isFollowed = false
     
     

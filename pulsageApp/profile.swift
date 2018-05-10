@@ -13,7 +13,7 @@ class profile: UIViewController {
     fileprivate var currentUserProfile = false
     fileprivate var profileimageurl = ""
     fileprivate var name = ""
-    fileprivate var parseData = ParseData()
+    //fileprivate var parseData = ParseData()
     
     
     fileprivate var segmetedIndex = 0

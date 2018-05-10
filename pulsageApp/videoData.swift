@@ -9,11 +9,11 @@ class videoData: UIViewController {
     public var videoUrl : URL?
     
     //Mark: fileprivate variable
-    fileprivate var challenges          = [PFObject]()
-    fileprivate var challengeNameHolder = [""]
-    fileprivate let challengePicker     = ChallengePicker()
+    private var challenges          = [PFObject]()
+    private var challengeNameHolder = [""]
+    private let challengePicker     = ChallengePicker()
     
-    fileprivate var challengeObject: PFObject?
+    private var challengeObject: PFObject?
     
     
     private var player: AVPlayerViewController = {
@@ -22,7 +22,7 @@ class videoData: UIViewController {
         return con
     }()
     
-    fileprivate lazy var videoDescription: UITextView = {
+    private lazy var videoDescription: UITextView = {
         let textview = UITextView()
         textview.layer.borderColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.2).cgColor
         textview.layer.borderWidth = 1
@@ -33,14 +33,25 @@ class videoData: UIViewController {
         return textview
     }()
     
-    fileprivate lazy var Picker: UIButton = {
+    private lazy var Picker: UIButton = {
         let picker = UIButton()
+        picker.backgroundColor = UIColor(red:0.87, green:0.36, blue:0.35, alpha:1.0)
+        picker.layer.cornerRadius = 20
         picker.setTitle("Upload to a Challenge? (optional)", for: .normal)
         picker.titleLabel?.font = UIFont.systemFont(ofSize: 16)
         picker.setTitleColor(.black, for: .normal)
         picker.addTarget(self, action: #selector(challengeController), for: .touchUpInside)
         picker.translatesAutoresizingMaskIntoConstraints = false
         return picker
+    }()
+    
+    private lazy var optionalText: UILabel = {
+        let label = UILabel()
+        label.text  = "(optional)"
+        label.font = UIFont.systemFont(ofSize: 12)
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
     }()
     
     private lazy var uploadVideo: UIButton = {
@@ -92,9 +103,15 @@ class videoData: UIViewController {
         
         self.view.addSubview(Picker)
         self.Picker.topAnchor.constraint(equalTo: self.videoDescription.bottomAnchor, constant: 10).isActive = true
-        self.Picker.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor).isActive        = true
-        self.Picker.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor).isActive      = true
-        self.Picker.heightAnchor.constraint(equalToConstant: 40).isActive                                    = true
+        self.Picker.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor, constant: 20).isActive = true
+        self.Picker.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor, constant: -20).isActive = true
+        self.Picker.heightAnchor.constraint(equalToConstant: 40).isActive = true
+        
+        self.view.addSubview(self.optionalText)
+        self.optionalText.topAnchor.constraint(equalTo: self.Picker.bottomAnchor, constant: 5).isActive = true
+        self.optionalText.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor).isActive = true
+        self.optionalText.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor).isActive = true
+        self.optionalText.heightAnchor.constraint(equalToConstant: 20).isActive = true
         
         self.view.addSubview(self.uploadVideo)
         self.uploadVideo.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor, constant: -40).isActive = true

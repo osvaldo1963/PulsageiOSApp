@@ -4,8 +4,42 @@ import Parse
 class ChallengeHeader: UIView {
     
     public var objects = [PFObject]()
-    public var title = ["Best", "First"]
     public var delegate: ChallengeHeaderTaped?
+    
+    private lazy var FirstLabel: UILabel = {
+        let label = UILabel()
+        label.text = "First"
+        label.font = UIFont.systemFont(ofSize: 14)
+        label.textAlignment = .left
+        label.textColor = UIColor(red:0.87, green:0.36, blue:0.35, alpha:1.0)
+        return label
+    }()
+    
+    private lazy var BestLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Best"
+        label.font = UIFont.systemFont(ofSize: 19)
+        label.textAlignment = .right
+        label.textColor = UIColor(red:0.87, green:0.36, blue:0.35, alpha:1.0)
+        return label
+    }()
+    
+    private lazy var VideoPosition: UIStackView =  {
+        let stackview = UIStackView()
+        stackview.backgroundColor = .gray
+        stackview.alignment = .center
+        stackview.spacing = 10
+        stackview.distribution = .fillEqually
+        stackview.translatesAutoresizingMaskIntoConstraints = false
+        return stackview
+    }()
+    
+    private lazy var separator: UIView = {
+        let vw = UIView()
+        vw.backgroundColor = .gray
+        vw.translatesAutoresizingMaskIntoConstraints = false
+        return vw
+    }()
     
     public lazy var challengeCreatorImage: UIImageView = {
         let image = UIImageView()
@@ -24,6 +58,14 @@ class ChallengeHeader: UIView {
         btn.contentHorizontalAlignment = .left
         btn.translatesAutoresizingMaskIntoConstraints = false
         return btn
+    }()
+    
+    public lazy var challengeCaption: UITextView = {
+        let textview = UITextView()
+        textview.isEditable = false
+        textview.textColor = .black
+        textview.translatesAutoresizingMaskIntoConstraints = false
+        return textview
     }()
     
     public lazy var instagramProfileBtn: UIButton = {
@@ -70,7 +112,7 @@ class ChallengeHeader: UIView {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        self.backgroundColor = .white
+       
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -83,6 +125,48 @@ class ChallengeHeader: UIView {
     }
     
     private func setSubviewContrains() {
+        
+        self.addSubview(self.VideoPosition)
+        self.VideoPosition.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
+        self.VideoPosition.leftAnchor.constraint(equalTo: self.leftAnchor).isActive = true
+        self.VideoPosition.rightAnchor.constraint(equalTo: self.rightAnchor).isActive = true
+        self.VideoPosition.heightAnchor.constraint(equalToConstant: 40).isActive = true
+        
+        self.VideoPosition.addArrangedSubview(self.BestLabel)
+        self.VideoPosition.addArrangedSubview(self.FirstLabel)
+        
+        self.addSubview(self.separator)
+        self.separator.topAnchor.constraint(equalTo: self.VideoPosition.bottomAnchor).isActive = true
+        self.separator.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 20).isActive = true
+        self.separator.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -20).isActive = true
+        self.separator.heightAnchor.constraint(equalToConstant: 1).isActive = true
+        
+        self.addSubview(self.pageController)
+        self.pageController.topAnchor.constraint(equalTo: self.separator.bottomAnchor, constant: 10).isActive = true
+        self.pageController.leftAnchor.constraint(equalTo: self.leftAnchor).isActive = true
+        self.pageController.rightAnchor.constraint(equalTo: self.rightAnchor).isActive = true
+        self.pageController.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -70).isActive = true
+        
+        self.addSubview(self.challengeCreatorImage)
+        self.challengeCreatorImage.topAnchor.constraint(equalTo: self.pageController.bottomAnchor, constant: 5).isActive = true
+        self.challengeCreatorImage.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 10).isActive = true
+        self.challengeCreatorImage.widthAnchor.constraint(equalToConstant: 60).isActive = true
+        self.challengeCreatorImage.heightAnchor.constraint(equalToConstant: 60).isActive = true
+        
+        self.addSubview(self.creatorProfileBtn)
+        self.creatorProfileBtn.topAnchor.constraint(equalTo: self.pageController.bottomAnchor, constant: 3).isActive = true
+        self.creatorProfileBtn.leftAnchor.constraint(equalTo: self.challengeCreatorImage.rightAnchor, constant: 10).isActive = true
+        self.creatorProfileBtn.widthAnchor.constraint(equalToConstant: self.frame.size.width / 3).isActive = true
+        self.creatorProfileBtn.heightAnchor.constraint(equalToConstant: 20).isActive = true
+        
+        self.addSubview(self.challengeCaption)
+        self.challengeCaption.topAnchor.constraint(equalTo: self.creatorProfileBtn.bottomAnchor).isActive = true
+        self.challengeCaption.leftAnchor.constraint(equalTo: self.challengeCreatorImage.rightAnchor, constant: 5).isActive = true
+        self.challengeCaption.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -5).isActive = true
+        self.challengeCaption.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -5).isActive = true
+        
+        
+        /*
         self.addSubview(self.challengeCreatorImage)
         self.challengeCreatorImage.topAnchor.constraint(equalTo: self.topAnchor, constant: 10).isActive = true
         self.challengeCreatorImage.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 10).isActive = true
@@ -107,23 +191,32 @@ class ChallengeHeader: UIView {
         self.followBtn.widthAnchor.constraint(equalToConstant: self.frame.size.width / 3).isActive = true
         self.followBtn.heightAnchor.constraint(equalToConstant: 36).isActive = true
         
-        self.addSubview(self.pageController)
-        self.pageController.topAnchor.constraint(equalTo: self.instagramProfileBtn.bottomAnchor, constant: 10).isActive = true
-        self.pageController.leftAnchor.constraint(equalTo: self.leftAnchor).isActive = true
-        self.pageController.rightAnchor.constraint(equalTo: self.rightAnchor).isActive = true
-        self.pageController.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
         
+ 
         self.addSubview(self.pageControl)
         self.pageControl.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -8).isActive = true
         self.pageControl.leftAnchor.constraint(equalTo: self.leftAnchor).isActive = true
         self.pageControl.rightAnchor.constraint(equalTo: self.rightAnchor).isActive = true
         self.pageControl.heightAnchor.constraint(equalToConstant: 8).isActive = true
         self.pageControl.numberOfPages = self.objects.count // Set Number of pages to
+        */
         
     }
     
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        self.pageControl.currentPage = Int(scrollView.contentOffset.x) / Int(scrollView.frame.width)
+        let currentPage = Int(scrollView.contentOffset.x) / Int(scrollView.frame.width)
+        self.pageControl.currentPage = currentPage
+        if currentPage == 0 {
+            UIView.animate(withDuration: 0.5, animations: {
+                self.BestLabel.font = UIFont.systemFont(ofSize: 20)
+                self.FirstLabel.font = UIFont.systemFont(ofSize: 14)
+            })
+        } else if currentPage == 1 {
+            UIView.animate(withDuration: 0.5, animations: {
+                self.BestLabel.font = UIFont.systemFont(ofSize: 14)
+                self.FirstLabel.font = UIFont.systemFont(ofSize: 20)
+            })
+        }
     }
     
 }
@@ -143,7 +236,6 @@ extension ChallengeHeader: UICollectionViewDelegate, UICollectionViewDataSource 
         guard let url = URL(string: picurl) else {return UICollectionViewCell()}
         collection.thumbnail.sd_setImage(with: url)
         collection.videoDescription.text = videoDesc
-        collection.challengePlace.text = self.title[indexPath.item]
         return collection
     }
     

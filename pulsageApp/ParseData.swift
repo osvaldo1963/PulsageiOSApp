@@ -1,7 +1,7 @@
 import UIKit
 import Parse
 
-struct ParseData {
+struct ParseFunctions {
     
     enum QueryType {
         case getFirstObject
@@ -22,35 +22,66 @@ struct ParseData {
             } 
         })
     }
-    /*
-    public func LoadChallengesAndVideos(ClassName: String, Result: @escaping (_ challengeid:String, _ userForChallenge: PFObject, _ title: String, _ back:[PFObject]) -> Void) {
-        let query = PFQuery(className: ClassName)
-        query.cachePolicy = .networkElseCache
-        query.whereKey("block", notEqualTo: true)
-        query.findObjectsInBackground { (data, error) in
-            guard let datad = data , datad.count != 0 else {return}
-            
-            for each in datad {
-                guard let title = each["title"] as? String,
-                      let id = each.objectId, title != "", id != "",
-                      let useridFormChalleng = each["user"] as? String, useridFormChalleng != "" else {return}
-                let query = PFQuery(className: "Videos")
-                query.cachePolicy = .networkElseCache
-                query.whereKey("challengeid", equalTo: id)
-                query.limit = 1
-                query.whereKey("block", notEqualTo: true)
-                query.findObjectsInBackground { (data, error) in
-                    guard let datab = data, datab.count != 0 else {return}
-                    self.UserQuery(id: useridFormChalleng, Result: { (user) in
-                        Result(id, user, title, datab)
-                    })
-                }
-            }
-            
+    
+    public func sendpushNifications(receiver: String, message: String, sender: String) {
+        PFCloud.callFunction(inBackground: "sendpush", withParameters: ["id": receiver, "message": message, "sender": sender]) { (result, error) in
         }
     }
- 
-    */
+    
+    public func unregisterForPush() {
+        let token = UserDefaults.standard
+        guard let deviceToken = token.object(forKey: "deviceToken") as? Data else {return}
+        guard let userid = PFUser.current()?.objectId else {return}
+        print(userid)
+        
+        let install = PFInstallation.current()
+        install?.setDeviceTokenFrom(deviceToken)
+        install?["channels"] = ["global"]
+        install?.saveEventually({ (success, error) in
+            if error == nil {
+                if success  {
+                    print("it wokrkus")
+                }
+            } else {
+                print(error)
+            }
+        })
+        
+        PFPush.subscribeToChannel(inBackground: userid) { (success, error) in
+            if error != nil {
+                print(error.debugDescription)
+            }
+        }
+    }
+    
+    public func likeButtonAction(sender: CustomBtn) {
+        guard let object = sender.object else {return}
+        object.fetchInBackground { (result, error) in
+            if error == nil {
+                guard let data = result else {return}
+                guard let arrayVotes = data["Votes"] as? [String] else {return}
+                guard let currentUserId = PFUser.current()?.objectId else {return}
+                var array = arrayVotes
+                if array.contains(currentUserId) {
+                    let indexAt = array.index(of: currentUserId)
+                    array.remove(at: indexAt!)
+                    data["Votes"] = array
+                    data.saveEventually()
+                    let icon = UIImage(named: "heart")
+                    sender.setImage(icon, for: .normal)
+                } else {
+                    array.append(currentUserId)
+                    data["Votes"] = array
+                    data.saveEventually()
+                    let icon = UIImage(named: "redHart")
+                    sender.setImage(icon, for: .normal)
+                }
+            }
+        }
+    }
+    
+    
+    
     public func UserQuery(id: String, Result: @escaping (PFObject) -> Void) {
         let object = PFUser.query()
         object?.cachePolicy = .networkElseCache

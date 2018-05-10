@@ -75,6 +75,17 @@ class ProfileHeader: UIView{
         return button
     }()
     
+    public lazy var Setting: UIButton = {
+        let button = UIButton()
+        button.setTitle("settings", for: .normal)
+        button.backgroundColor = .white
+        button.setTitleColor(.black , for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 13)
+        button.layer.cornerRadius = 4
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
     public lazy var segmented: Segmented = {
         let seg = Segmented(frame: CGRect.zero)
         seg.backgroundColor = .gray
@@ -136,6 +147,12 @@ class ProfileHeader: UIView{
         self.followBtn.leftAnchor.constraint(equalTo: self.username.rightAnchor).isActive = true
         self.followBtn.rightAnchor.constraint(equalTo: self.rightAnchor).isActive = true
         self.followBtn.heightAnchor.constraint(equalToConstant: 30).isActive = true
+        
+        self.addSubview(self.Setting)
+        self.Setting.topAnchor.constraint(equalTo: self.followers.bottomAnchor , constant: 0).isActive = true
+        self.Setting.leftAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
+        self.Setting.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -10).isActive = true
+        self.Setting.heightAnchor.constraint(equalToConstant: 30).isActive = true
         
         self.addSubview(self.segmented)
         self.segmented.heightAnchor.constraint(equalToConstant: 50).isActive = true

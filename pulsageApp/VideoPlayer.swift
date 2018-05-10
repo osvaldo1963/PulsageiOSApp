@@ -13,7 +13,7 @@ class VideoPlayer: UIViewController {
     fileprivate var buttonPressed  = "Comments"
     fileprivate let videoid        = "videoCell" //cell id
     fileprivate let commentid      = "commentCell" //cell id
-
+    private let parseData = ParseFunctions()
     //======================================
 
     //================================================
@@ -29,6 +29,13 @@ class VideoPlayer: UIViewController {
     fileprivate let textfield: UITextField = {
         let txt = UITextField()
         return txt
+    }()
+    
+    fileprivate lazy var userPicture: UIImageView = {
+        let imageview = UIImageView()
+        imageview.contentMode = .scaleAspectFill
+        imageview.clipsToBounds = true
+        return imageview
     }()
     
     private var controller: AVPlayerViewController = {
@@ -52,14 +59,14 @@ class VideoPlayer: UIViewController {
         let conheight = self.view.frame.size.height / 4
         let tableframe = CGRect(x: 0, y: 0, width: 0, height:0)
         var table = UITableView.init(frame:  tableframe, style: .grouped)
-   
-        table.translatesAutoresizingMaskIntoConstraints = false
         table.register(VideoCell.self, forCellReuseIdentifier: self.videoid)
         table.register(CommentCell.self, forCellReuseIdentifier: self.commentid)
         table.showsVerticalScrollIndicator = false
         table.delegate = self
         table.dataSource = self
         table.allowsSelection = true
+        table.backgroundColor = .white
+        table.translatesAutoresizingMaskIntoConstraints = false
         return table
     }()
 
@@ -72,8 +79,8 @@ class VideoPlayer: UIViewController {
         super.viewDidLoad()
         self.view.backgroundColor = UIColor(red:0.98, green:0.98, blue:0.98, alpha:1.0)
         self.subviews()
-       
-       
+        
+        
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -83,7 +90,9 @@ class VideoPlayer: UIViewController {
         DispatchQueue.global(qos: .userInteractive).async {
             self.setVideoData()
             self.getComments()
+            //self.setVideosize(videoFile: self.videdata)
         }
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -96,6 +105,7 @@ class VideoPlayer: UIViewController {
         self.player.pause()
         self.player.seek(to: kCMTimeZero)
         self.controller.player = nil
+        
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -103,6 +113,7 @@ class VideoPlayer: UIViewController {
         self.player.seek(to: kCMTimeZero)
         self.player.pause()
         self.controller.player = nil
+
     }
     
     override func viewDidLayoutSubviews() {
@@ -124,7 +135,6 @@ class VideoPlayer: UIViewController {
                 result["views"] = currentViews + 1
                 result.saveInBackground(block: { (success, error) in
                     guard let currentviews = result["views"] as? Int else {return}
-                    print(currentviews)
                     DispatchQueue.main.async {
                         header.instagramBtn.setTitle("Views \(currentviews)", for: .normal)
                     }
@@ -141,9 +151,7 @@ class VideoPlayer: UIViewController {
     //================================================
     
     
-    private func sendVideoToFullScreen(size: CGSize) {
-        
-    }
+
     
     private func resolutionForLocalVideo(url: URL) -> CGSize?{
         guard let track = AVURLAsset(url: url).tracks(withMediaType: .video).first else {
@@ -177,12 +185,13 @@ class VideoPlayer: UIViewController {
         self.controller.view.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor).isActive = true
         self.controller.view.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor).isActive = true
         self.controller.view.heightAnchor.constraint(equalToConstant: self.view.frame.size.height / 3).isActive = true
- 
+
         self.view.addSubview(self.vpTable)
         self.vpTable.topAnchor.constraint(equalTo: self.controller.view.bottomAnchor).isActive = true
         self.vpTable.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor).isActive = true
         self.vpTable.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor).isActive = true
         self.vpTable.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
+ 
     }
     
     //========================================================
@@ -207,14 +216,74 @@ class VideoPlayer: UIViewController {
         guard let videoResolution = self.resolutionForLocalVideo(url: url) else {
             return
         }
-        //self.player.play()
+        
         if videoResolution.width < videoResolution.height {
-            DispatchQueue.main.async {
-                //self.controller.videoGravity = AVLayerVideoGravity.resizeAspectFill.rawValue
-            }
+            
+        }
+        ///
+    }
+    
+    private func setVideosize(videoFile: PFObject) {
+        
+        guard let videoFile = videoFile["video"] as? PFFile else {return}
+        guard let videoUrl = videoFile.url else {return}
+        guard let url = URL(string: videoUrl) else {return}
+        guard let videoResolution = self.resolutionForLocalVideo(url: url) else {
+            return
         }
         
-        ///
+        if videoResolution.width < videoResolution.height {
+            UIView.animate(withDuration: 1.0, animations: {
+                DispatchQueue.main.async {
+                    /*
+                    self.controller.view.translatesAutoresizingMaskIntoConstraints = false
+                    self.controller.view.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
+                    self.controller.view.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor).isActive = true
+                    self.controller.view.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor).isActive = true
+                    self.controller.view.heightAnchor.constraint(equalToConstant: self.view.frame.size.height / 2).isActive = true
+                    
+                    self.vpTable.translatesAutoresizingMaskIntoConstraints = false
+                    self.vpTable.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: self.view.frame.size.height / 2).isActive = true
+                    self.vpTable.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor).isActive = true
+                    self.vpTable.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor).isActive = true
+                    self.vpTable.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
+                    */
+                }
+            })
+        } else {
+            UIView.animate(withDuration: 1.0, animations: {
+                DispatchQueue.main.async {
+                    /*
+                    self.controller.view.translatesAutoresizingMaskIntoConstraints = false
+                    self.controller.view.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
+                    self.controller.view.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor).isActive = true
+                    self.controller.view.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor).isActive = true
+                    self.controller.view.heightAnchor.constraint(equalToConstant: self.view.frame.size.height / 3).isActive = true
+                    
+                    self.vpTable.translatesAutoresizingMaskIntoConstraints = false
+                    self.vpTable.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: self.view.frame.size.height / 3).isActive = true
+                    self.vpTable.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor).isActive = true
+                    self.vpTable.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor).isActive = true
+                    self.vpTable.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
+                    */
+                }
+            })
+        }
+    }
+    
+    var lasContent: CGFloat = 0
+    
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        self.lasContent = scrollView.contentOffset.y
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        if self.lasContent < scrollView.contentOffset.y {
+            print("scroll")
+        } else {
+            print("none")
+           
+        }
     }
     
     private func changeForVideoSelected(videoObject: PFObject) {
@@ -226,13 +295,13 @@ class VideoPlayer: UIViewController {
         self.player.replaceCurrentItem(with: AVPlayerItem(url: url))
         self.player.play()
         self.getComments()
+        //self.setVideosize(videoFile: videoObject)
+        
     }
     
     fileprivate func getComments() {
-        guard let videoId = self.videdata.objectId else {return}
-        
         let query = PFQuery(className: "VideoComments")
-        query.whereKey("videoId", equalTo: videoId)
+        query.whereKey("Video", equalTo: self.videdata)
         query.order(byDescending: "createdAt")
         query.findObjectsInBackground { (data, error) in
             guard let comments = data else {return}
@@ -241,7 +310,6 @@ class VideoPlayer: UIViewController {
             self.buttonPressed = "Comments"
             DispatchQueue.main.async {
                 self.vpTable.reloadSections(IndexSet(integer: 1), with: .automatic)
-                
             }
         }
     }
@@ -262,18 +330,61 @@ class VideoPlayer: UIViewController {
     //===============================================
     
     private func voteCount(head: TbHeader) {
-        let videoVotes = self.videdata
-        let relation = videoVotes?.relation(forKey: "Vote")
-        let relationQuery = relation?.query()
-        relationQuery?.findObjectsInBackground(block: { (objects, error) in
-            if error == nil {
-                guard let votes = objects else {return}
-                head.voteText.text = "Votes \(votes.count)"
-                //head.votetBtn.setFATitleColor(color: .red, forState: .normal)
-            } else {
-                self.simpleAlert(Message: "Check your internet Connection", title: "Error Voting")
+        
+        guard let videoDescription = self.videdata["description"] as? String else {return }
+        guard let videoChallenge = self.videdata["Challenges"] as? PFObject else {return}
+        
+        head.sharetBtn.isHidden = true
+        head.videoDescription.text = videoDescription
+        head.sharetBtn.addTarget(self, action: #selector(ShareBtn), for: .touchUpInside)
+        head.segmented.currentButton = self.buttonPressed
+        head.segmented.ButtonTitles = ["Comments", "Similar Videos"]
+        head.segmented.delegate = self
+        head.votetBtn.object = videoChallenge
+        head.votetBtn.addTarget(self, action: #selector(self.likeAction(sender:)), for: .touchUpInside)
+        head.reportBtn.addTarget(self, action: #selector(self.ReportBtn), for: .touchUpInside)
+        //user data
+        guard let user = self.videdata["User"] as? PFUser else {return}
+        user.fetchInBackground { (userdata, error) in
+            guard let userresult = userdata else {return}
+            guard let picfile = user["profilePicture"] as? PFFile else {return}
+            guard let picUrl = picfile.url else {return}
+            head.username.text = userresult.handle
+            let tapGesture = GestureRescognizer(target: self, action: #selector(self.presentprofile(sender:)))
+            tapGesture.data = userresult
+            head.profilePic.sd_setImage(with: URL(string: picUrl))
+            head.profilePic.isUserInteractionEnabled = true
+            head.profilePic.addGestureRecognizer(tapGesture)
+            
+        }
+
+        guard let voteCount = self.videdata["Votes"] as? [String] else {return}
+        head.votetBtn.object = self.videdata
+        head.votetBtn.addTarget(self, action: #selector(self.likeAction(sender:)), for: .touchUpInside)
+        head.voteText.text = "\(voteCount.count)"
+        guard let currentUserid = PFUser.current()?.objectId else {return}
+        if voteCount.contains(currentUserid) {
+            DispatchQueue.main.async {
+                let icon = UIImage(named: "redHart")
+                head.votetBtn.setImage(icon, for: .normal)
+                
             }
-        })
+            
+        } else {
+            DispatchQueue.main.async {
+                let icon = UIImage(named: "heart")
+                head.votetBtn.setImage(icon, for: .normal)
+            }
+        }
+        
+        
+        if videoChallenge.objectId == "nil" {
+            head.rocketIcon.isEnabled = false
+        } else {
+            head.rocketIcon.object = videoChallenge
+            head.rocketIcon.addTarget(self, action: #selector(self.presentChallenge(sender:)), for: .touchUpInside)
+        }
+    
     }
     
     //================================================================================
@@ -297,25 +408,7 @@ class VideoPlayer: UIViewController {
         self.present(vc, animated: true, completion: nil)
     }
     
-    
-    
-    @objc fileprivate func VoteBtn(header: VoteBtn) {
-        guard let hd = header.header else {return}
-        guard let currentVideo = self.videdata else {return}
-        guard let user = PFUser.current() else {return}
-        let vote = currentVideo.relation(forKey: "Vote")
-        vote.add(user)
-        currentVideo.saveInBackground { (success, error) in
-            if error == nil {
-                self.voteCount(head: hd)
-            } else {
-                print(error.debugDescription)
-            }
-        }
-        
-    }
     @objc private func presentprofile(sender: GestureRescognizer) {
-        
         guard let data = sender.data else {return}
         let profileTab = ProfileTab()
         profileTab.userObject = data
@@ -337,6 +430,12 @@ class VideoPlayer: UIViewController {
         
     }
     
+    @objc private func likeAction(sender: CustomBtn) {
+        self.parseData.likeButtonAction(sender: sender)
+    }
+    
+    
+    
     //============================================
 }
 
@@ -352,11 +451,11 @@ extension VideoPlayer: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         if section == 0 {
-            return 280 //header hight
+            return 235 //header hight
         } else {
             //Mark: check current data state
             if self.buttonPressed == "Comments"{
-                return 40
+                return 60
             } else {
                 return 0
             }
@@ -369,52 +468,23 @@ extension VideoPlayer: UITableViewDelegate, UITableViewDataSource {
             let frame = CGRect(x: 0, y: 0, width: self.view.frame.width, height: 300)
             let tableHeader = TbHeader(frame: frame)
             //video data
-            guard let videoDescription = self.videdata["description"] as? String else {return UIView()}
-            guard let videoChallenge = self.videdata["Challenges"] as? PFObject else {
-                tableHeader.ArrowBtn.isHidden = true
-                tableHeader.ChallengeText.isHidden = true
-                return tableHeader
-            }
+    
             self.voteCount(head: tableHeader)
-            tableHeader.videoDescription.text = videoDescription
-            tableHeader.sharetBtn.addTarget(self, action: #selector(ShareBtn), for: .touchUpInside)
-            tableHeader.segmented.currentButton = self.buttonPressed
-            tableHeader.segmented.ButtonTitles = ["Comments", "Similar Videos"]
-            tableHeader.segmented.delegate = self
-            tableHeader.votetBtn.header = tableHeader
-            tableHeader.votetBtn.addTarget(self, action: #selector(self.VoteBtn(header:)), for: .touchUpInside)
-            tableHeader.reportBtn.addTarget(self, action: #selector(self.ReportBtn), for: .touchUpInside)
-            tableHeader.ArrowBtn.object = videoChallenge
-            tableHeader.ArrowBtn.addTarget(self, action: #selector(self.presentChallenge(sender:)), for: .touchUpInside)
-            //user data
-            guard let user = self.videdata["User"] as? PFUser else {return UIView()}
-            user.fetchInBackground { (userdata, error) in
-                guard let userresult = userdata else {return}
-                guard let username = userresult["username"]  as? String else {return}
-                guard let picfile = user["profilePicture"] as? PFFile else {return}
-                guard let picUrl = picfile.url else {return}
-                tableHeader.username.text = username.getTextFromEmail()
-                tableHeader.profilePic.sd_setImage(with: URL(string: picUrl))
-            }
             self.viewCount(header: tableHeader)
             return tableHeader
         } else {
             //Mark: comments input
             if self.buttonPressed == "Comments"{
-                textfield.backgroundColor = .white
-                textfield.frame.size.height = 40
-                textfield.font = UIFont(name: "Arial", size: 14)
-                textfield.setLeftPaddingPoints(10)
-                if PFUser.current() == nil {
-                    self.textfield.isEnabled = false
-                    self.textfield.placeholder = "You need to Log In"
-
-                } else {
-                    self.textfield.isEnabled = true
-                    self.textfield.placeholder = "What you think about this video?"
-                    self.textfield.delegate = self
-                }
-                return textfield
+                guard let user = PFUser.current() else {return UIView()}
+                guard let usePffile = user["profilePicture"] as? PFFile else {return UIView()}
+                
+                let commentSection = CommentHeader(frame: CGRect(x: 0, y: 0, width: self.view.frame.size.width, height: 40))
+                commentSection.profilePicture.sd_setImage(with: usePffile.getImage(), completed: nil)
+                commentSection.commentInput.isEnabled = true
+                commentSection.commentInput.placeholder = "What you think about this video?"
+                commentSection.commentInput.delegate = self
+                
+                return commentSection
             } else {
                 return nil
             }
@@ -459,7 +529,6 @@ extension VideoPlayer: UITableViewDelegate, UITableViewDataSource {
                 user.fetchInBackground(block: { (userData, error) in
                     if error == nil {
                         guard let data = userData as? PFUser else {return}
-                        guard let username = data.username else {return}
                         guard let userpicFile = data["profilePicture"] as? PFFile else {return}
                         guard let picUrl = userpicFile.url else {return}
                         guard let url = URL(string: picUrl) else {return}
@@ -468,7 +537,7 @@ extension VideoPlayer: UITableViewDelegate, UITableViewDataSource {
                         commentsCell.profilePicture.isUserInteractionEnabled = true
                         commentsCell.profilePicture.addGestureRecognizer(tapGesture)
                         commentsCell.profilePicture.sd_setImage(with: url)
-                        commentsCell.linkToProfile.setTitle("@\(username.getTextFromEmail())", for: .normal)
+                        commentsCell.linkToProfile.setTitle("@\(data.handle)", for: .normal)
                         commentsCell.linkToProfile.object = data
                         commentsCell.linkToProfile.addTarget(self, action: #selector(self.presentProfile(sender:)), for: .touchUpInside)
                         
@@ -492,13 +561,12 @@ extension VideoPlayer: UITableViewDelegate, UITableViewDataSource {
                 ///
                 
                 videocell.Header.challengeSponsor.isHidden = true // only for sponsor section
-                videocell.Footer.rewardBtn.isHidden = true // only for sponsor section
+                //videocell.Footer.rewardBtn.isHidden = true // only for sponsor section
                 
                 ///Load data for user
                 userForVideo.fetchInBackground(block: { (result, error) in
                     if error == nil {
                         guard let userdata = result else {return}
-                        guard let username = userdata["username"] as? String else {return}
                         guard let profileFile = userdata["profilePicture"] as? PFFile else {return}
                         guard let profileurl = profileFile.url else {return}
                         guard let profileToUrl = URL(string: profileurl) else {return}
@@ -508,7 +576,7 @@ extension VideoPlayer: UITableViewDelegate, UITableViewDataSource {
                         videocell.Header.profileImage.addGestureRecognizer(tapGesture)
                         videocell.Header.profileImage.isUserInteractionEnabled = true
                         videocell.Header.profileImage.sd_setImage(with: profileToUrl)
-                        videocell.Header.profileBotton.button.setTitle(" \(username.getTextFromEmail())", for: .normal)
+                        videocell.Header.profileBotton.button.setTitle(" \(userdata.handle)", for: .normal)
                         videocell.Header.profileBotton.button.object = userdata
                         videocell.Header.profileBotton.button.addTarget(self, action: #selector(self.presentProfile(sender:)), for: .touchUpInside)
                     }
@@ -519,8 +587,8 @@ extension VideoPlayer: UITableViewDelegate, UITableViewDataSource {
                 
                 ///Load Video data
                 videocell.Footer.VideoDescription.text = videoDescription
-                videocell.Footer.ChallengeText.isHidden = true
-                videocell.Footer.ArrowBtn.isHidden = true
+                videocell.Footer.like.object = indexvideos
+                videocell.Footer.like.addTarget(self, action: #selector(self.likeAction(sender:)), for: .touchUpInside)
                 ///
                 return videocell
             }
@@ -542,14 +610,11 @@ extension VideoPlayer: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if self.buttonPressed == "Similar Videos" {
             let indexobject = self.realetevideos[indexPath.row]
-            print(indexobject)
             self.changeForVideoSelected(videoObject: indexobject)
         }
     }
-    
 
 }
-
 
 extension VideoPlayer: PulsageSegmentedDelegate {
     func buttonPressed(id: String) {
@@ -562,8 +627,6 @@ extension VideoPlayer: PulsageSegmentedDelegate {
             DispatchQueue.global(qos: .userInitiated).async {
                 self.realetedVideos()
             }
-            
-            
         default:
             break
         }
@@ -573,29 +636,40 @@ extension VideoPlayer: PulsageSegmentedDelegate {
 extension VideoPlayer: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         guard let user = PFUser.current() else {return false}
-        
-        if user != nil {
+        guard let userid = user.objectId else {return false}
+        guard let username = user["username"] as? String else {return false}
+        if userid != "" {
             if textField.text != ""{
                 let query = PFObject(className: "VideoComments")
-                query["comment"] = self.textfield.text
+                query["comment"] = textField.text
                 query["User"] = user
                 query["Video"] = self.videdata
                 query.saveInBackground { (success, error) in
                     if success {
                         self.getComments()
-                        self.textfield.text = ""
-                        self.textfield.resignFirstResponder()
+                        textField.text = ""
+                        textField.resignFirstResponder()
+                        DispatchQueue.main.async {
+                            self.vpTable.reloadSections(IndexSet(integer: 1), with: .automatic)
+                        }
+                        guard let videoForUser = self.videdata["User"] as? PFObject else {return}
+                        guard let videouserid = videoForUser.objectId else {return}
+                        guard let videodescription = self.videdata["description"] as? String else {return}
+                        
+                        let parsefunctions = ParseFunctions()
+                        parsefunctions.sendpushNifications(receiver: videouserid, message: "\(username.getTextFromEmail()) just comment on your video \(videodescription)", sender: userid)
+                        
                     }
                 }
             } else {
-                self.textfield.endEditing(true)
+                textField.endEditing(true)
             }
         }
  
         return true
     }
     func textFieldDidBeginEditing(_ textField: UITextField) {
-        moveTextField(textfield, moveDistance: -220, up: true)
+        moveTextField(textfield , moveDistance: -220, up: true)
     }
     
     func textFieldDidEndEditing(_ textField: UITextField) {

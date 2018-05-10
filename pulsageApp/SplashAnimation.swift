@@ -20,20 +20,32 @@ class SplashAnimation: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.insertSubview(self.imageview, at: 0)
+        self.view.addSubview(self.splash)
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
         
         self.navigationController?.gradientBackground()
-        //self.navigationController?.navigationBar.prefersLargeTitles = true
         self.navigationController?.navigationBar.isHidden = true
-        self.view.addSubview(self.splash)
+       
         let when = DispatchTime.now() + 1.7
         DispatchQueue.main.asyncAfter(deadline: when) {
             if PFUser.current() != nil {
+                guard let userid = PFUser.current()?.objectId else {return}
+                PFPush.subscribeToChannel(inBackground: userid, block: { (success, error) in })
                 let tabBarViewcontroller = TabBar()
-                self.navigationController?.pushViewController(tabBarViewcontroller, animated: true)
+                self.present(tabBarViewcontroller, animated: true, completion: nil)
+                
             } else {
                 let presenatationView = Presentation()
                 self.navigationController?.pushViewController(presenatationView, animated: true)
             }
         }
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.navigationController?.navigationBar.isHidden = true
     }
 }

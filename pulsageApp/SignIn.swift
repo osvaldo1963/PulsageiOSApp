@@ -3,8 +3,18 @@ import Parse
 import Font_Awesome_Swift
 import FBSDKCoreKit
 import FBSDKLoginKit
+import GoogleSignIn
 
-class SignIn: UIViewController {
+class SignIn: UIViewController, GIDSignInDelegate, GIDSignInUIDelegate {
+    func sign(_ signIn: GIDSignIn!, didSignInFor user: GIDGoogleUser!, withError error: Error!) {
+        if let error = error {
+            print(error)
+        } else {
+            print(user.profile.email)
+            guard let email = user.profile.email else {return}
+            self.SigninAction(Email: email, Pass: email, fbAccount: false, googleAccount: true)
+        }
+    }
     
     //===================================================================
     //============       Mark: Visual Objects      ======================
@@ -12,13 +22,17 @@ class SignIn: UIViewController {
     fileprivate lazy var EmailInput: UITextField = {
         let textfield = UITextField()
         textfield.placeholder = "Enter Email"
-        textfield.backgroundColor = UIColor(red:0.93, green:0.94, blue:0.95, alpha:1.0)
         textfield.layer.cornerRadius = 3
         textfield.setLeftPaddingPoints(6)
         textfield.keyboardType = .emailAddress
         textfield.autocorrectionType = .no
         textfield.autocapitalizationType = .none
         textfield.becomeFirstResponder()
+        textfield.backgroundColor = .white
+        textfield.textAlignment = .center
+        textfield.layer.cornerRadius = 20
+        textfield.layer.borderColor = UIColor.orange.cgColor
+        textfield.layer.borderWidth = 1
         textfield.translatesAutoresizingMaskIntoConstraints = false
         return textfield
     }()
@@ -26,22 +40,26 @@ class SignIn: UIViewController {
     fileprivate lazy var passwordInput: UITextField = {
         let textfield = UITextField()
         textfield.placeholder = "Enter Password"
-        textfield.backgroundColor = UIColor(red:0.93, green:0.94, blue:0.95, alpha:1.0)
         textfield.layer.cornerRadius = 3
         textfield.setLeftPaddingPoints(6)
         textfield.isSecureTextEntry = true
         textfield.autocorrectionType = .no
         textfield.autocapitalizationType = .none
+        textfield.backgroundColor = .white
+        textfield.textAlignment = .center
+        textfield.layer.cornerRadius = 20
+        textfield.layer.borderColor = UIColor.orange.cgColor
+        textfield.layer.borderWidth = 1
         textfield.translatesAutoresizingMaskIntoConstraints = false
         return textfield
     }()
     
     fileprivate lazy var forgotPassBtn: UIButton = {
         let button = UIButton()
-        button.setTitle("Forgot? ", for: .normal)
-        button.frame = CGRect(x: 0, y: 0, width: 50, height: 30)
+        button.setTitle(" Forgot? ", for: .normal)
+        button.frame = CGRect(x: 0, y: 0, width: 70, height: 30)
         button.setTitleColor(.black, for: .normal)
-        button.contentHorizontalAlignment = .right
+        button.contentHorizontalAlignment = .center
         button.titleLabel?.font = UIFont.systemFont(ofSize: 14)
         button.addTarget(self, action: #selector(forgotPasswordAction), for: .touchUpInside)
         return button
@@ -57,10 +75,18 @@ class SignIn: UIViewController {
     
     fileprivate lazy var facebookLogin: BonceButton = {
         let button = BonceButton()
-        button.setTitle("Log In with Facebook", for: .normal)
-        button.backgroundColor = UIColor(red:0.23, green:0.35, blue:0.60, alpha:1.0)
+        let icon = UIImage(named: "facebookicon")
+        button.setImage(icon, for: .normal)
         button.addTarget(self, action: #selector(loginManager), for: .touchUpInside)
-        button.layer.cornerRadius = 26
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
+    fileprivate lazy var googleLogin: BonceButton = {
+        let button = BonceButton()
+        let icon = UIImage(named: "googleicon")
+        button.setImage(icon, for: .normal)
+        button.addTarget(self, action: #selector(self.googleSignIn(sender:)), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -112,7 +138,8 @@ class SignIn: UIViewController {
         ///
         
         self.passwordInput.rightView = self.forgotPassBtn
-        self.passwordInput.rightViewMode = .always
+        self.passwordInput.rightViewMode = .whileEditing
+        
         ///
         self.view.addSubview(self.or)
         self.or.topAnchor.constraint(equalTo: self.passwordInput.bottomAnchor, constant: 20).isActive = true
@@ -124,9 +151,17 @@ class SignIn: UIViewController {
         ///
         self.view.addSubview(self.facebookLogin)
         self.facebookLogin.topAnchor.constraint(equalTo: self.or.bottomAnchor, constant: 20).isActive = true
-        self.facebookLogin.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor, constant: 20).isActive = true
-        self.facebookLogin.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor, constant: -20).isActive = true
-        self.facebookLogin.heightAnchor.constraint(equalToConstant: 55).isActive = true
+        self.facebookLogin.centerXAnchor.constraint(equalTo: self.view.centerXAnchor, constant: -50).isActive = true
+        self.facebookLogin.widthAnchor.constraint(equalToConstant: 60).isActive = true
+        self.facebookLogin.heightAnchor.constraint(equalToConstant: 60).isActive = true
+        ///
+        
+        ///
+        self.view.addSubview(self.googleLogin)
+        self.googleLogin.topAnchor.constraint(equalTo: self.or.bottomAnchor, constant: 20).isActive = true
+        self.googleLogin.centerXAnchor.constraint(equalTo: self.view.centerXAnchor, constant: 50).isActive = true
+        self.googleLogin.widthAnchor.constraint(equalToConstant: 60).isActive = true
+        self.googleLogin.heightAnchor.constraint(equalToConstant: 60).isActive = true
         ///
     }
     
@@ -134,16 +169,25 @@ class SignIn: UIViewController {
         self.navigationController?.popViewController(animated: true)
     }
     
-    @objc func SigninBtn() {
-        self.SigninAction(Email: self.EmailInput.text!, Pass: self.passwordInput.text!, fbAccount: false)
+    @objc private func googleSignIn(sender: BonceButton) {
+        GIDSignIn.sharedInstance().delegate = self
+        GIDSignIn.sharedInstance().uiDelegate = self
+        GIDSignIn.sharedInstance().signIn()
     }
     
-    @objc fileprivate func SigninAction(Email: String, Pass: String, fbAccount: Bool) {
+    @objc func SigninBtn() {
+        self.SigninAction(Email: self.EmailInput.text!, Pass: self.passwordInput.text!, fbAccount: false, googleAccount: false)
+    }
+    
+    @objc fileprivate func SigninAction(Email: String, Pass: String, fbAccount: Bool, googleAccount: Bool) {
         
         var emailToLogin = ""
         var passToLogin = ""
         
         if fbAccount {
+            emailToLogin = Email
+            passToLogin = Pass.sha512()
+        } else if googleAccount {
             emailToLogin = Email
             passToLogin = Pass.sha512()
         } else {
@@ -154,7 +198,7 @@ class SignIn: UIViewController {
         PFUser.logInWithUsername(inBackground: emailToLogin, password: passToLogin) { (user, error) in
             if error == nil {
                 let tabBarViewcontroller = TabBar()
-                self.navigationController?.pushViewController(tabBarViewcontroller, animated: true)
+                self.present(tabBarViewcontroller, animated: true, completion: nil)
             } else {
                 guard let err = error?.localizedDescription else {return}
                 self.simpleAlert(Message: "\(err) \n if you sign up using facebook you need to login using facebook", title: "Login Error")
@@ -209,7 +253,7 @@ class SignIn: UIViewController {
             graphic?.start(completionHandler: { (connection, user, error) in
                 guard let userinfo = user as? [String: Any] else {return}
                 guard let userEmail = userinfo["email"] as? String else {return}
-                self.SigninAction(Email: userEmail, Pass: userEmail, fbAccount: true)
+                self.SigninAction(Email: userEmail, Pass: userEmail, fbAccount: true, googleAccount: false)
             })
         }
     }

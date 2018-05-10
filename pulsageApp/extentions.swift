@@ -2,8 +2,6 @@ import UIKit
 import Parse
 import Font_Awesome_Swift
 
-
-
 extension String {
     func getTextFromEmail() -> String{
         var token = self.components(separatedBy: "@")
@@ -22,6 +20,37 @@ extension String {
         }
         return result
     }
+  
+    var isEmail: Bool {
+        let emailRegEx = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,20}"
+        let emailTest  = NSPredicate(format:"SELF MATCHES %@", emailRegEx)
+        return emailTest.evaluate(with: self)
+    }
+    
+}
+
+extension UIButton {
+    func dropShadow() {
+        self.layer.masksToBounds = false
+        self.layer.shadowColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.5).cgColor
+        self.layer.shadowOpacity = 0.7
+        self.layer.shadowOffset = CGSize(width: 0, height: 5)
+        self.layer.shadowRadius = 13
+        self.layer.shadowPath = UIBezierPath(rect: self.bounds).cgPath
+        self.layer.shouldRasterize = true
+        self.layer.rasterizationScale = UIScreen.main.scale
+    }
+}
+
+extension CAGradientLayer {
+    func gradiendColorLayer(firstColor: UIColor, secondColor: UIColor, frame: CGRect) -> CAGradientLayer {
+        let gradientLayer = self
+        gradientLayer.frame = frame
+        gradientLayer.colors = [firstColor.cgColor, secondColor.cgColor]
+        gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.0)
+        gradientLayer.endPoint = CGPoint(x: 0.0, y: 1.0)
+        return gradientLayer
+    }
 }
 
 extension UIApplication {
@@ -31,6 +60,7 @@ extension UIApplication {
 }
 
 extension UINavigationController {
+    
     func gradientBackground() {
         self.navigationBar.isTranslucent = true
         self.navigationBar.setBackgroundImage(UIImage(), for: .default)
@@ -51,13 +81,10 @@ extension UINavigationController {
         gradientLayer.endPoint = CGPoint(x: 1.0, y: 0.5)
         self.navigationBar.layer.insertSublayer(gradientLayer, at: 0)
         
+        let attributes = [NSAttributedStringKey.font: UIFont(name: "HelveticaNeue", size: 20)!, NSAttributedStringKey.foregroundColor: UIColor.white]
+        self.navigationBar.titleTextAttributes = attributes
     }
 }
-
-extension UIView {
-    
-}
-
 
 extension Date {
     func timeAgoSinceDate(numericDates:Bool = false) -> String {
@@ -240,176 +267,40 @@ extension UIImage {
 }
 
 
-func += <KeyType, ValueType> ( left: inout Dictionary<KeyType, ValueType>, right: Dictionary<KeyType, ValueType>) {
-    for (k, v) in right {
-        left.updateValue(v, forKey: k)
-    }
-}
 
-extension String {
-    func NSRangeFromRange(range: Range<String.Index>) -> NSRange {
-        let utf16view = self.utf16
-        let from = String.UTF16View.Index(range.lowerBound, within: utf16view)!
-        let to = String.UTF16View.Index(range.upperBound, within: utf16view)!
-        
-        return NSMakeRange(utf16view.distance(from: utf16view.startIndex, to: from), utf16view.distance(from: from, to: to))
-        //return NSMakeRange(utf16view.distance(from: utf16view.startIndex, to: from), utf16view.distance(from: from, to: to))
-    }
-    
-    mutating func dropTrailingNonAlphaNumericCharacters() {
-        let nonAlphaNumericCharacters = NSCharacterSet.alphanumerics.inverted
-        let characterArray = components(separatedBy: nonAlphaNumericCharacters)
-        if let first = characterArray.first {
-            self = first
-        }
-    }
-}
 
-extension UITextView {
-    
-    
-    public func resolveHashTags(possibleUserDisplayNames:[String]? = nil) {
+extension UITabBarController {
+    func setupMiddleButton(hidden: Bool) {
         
-        let schemeMap = [
-            "#":"hash",
-            "@":"mention"
-        ]
+        let menuButton = BonceButton(frame: CGRect(x: 0, y: 0, width: 60, height: 60))
+        menuButton.translatesAutoresizingMaskIntoConstraints = false
+        self.view.addSubview(menuButton)
+        menuButton.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
+        menuButton.centerXAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor).isActive = true
+        menuButton.widthAnchor.constraint(equalToConstant: 58).isActive = true
+        menuButton.heightAnchor.constraint(equalToConstant: 58).isActive = true
+        menuButton.backgroundColor = UIColor(red:0.87, green:0.36, blue:0.35, alpha:1.0)
+        menuButton.layer.cornerRadius = 30
+        menuButton.dropShadow()
         
-        // Separate the string into individual words.
-        // Whitespace is used as the word boundary.
-        // You might see word boundaries at special characters, like before a period.
-        // But we need to be careful to retain the # or @ characters.
-        let words = self.text.components(separatedBy: NSCharacterSet.whitespacesAndNewlines)
-        let attributedString = attributedText.mutableCopy() as! NSMutableAttributedString
+        let icon = UIImage(named: "plusIcon")
+        menuButton.setImage(icon, for: .normal)
+        menuButton.addTarget(self, action: #selector(menuButtonAction(sender:)), for: .touchUpInside)
         
-        // keep track of where we are as we interate through the string.
-        // otherwise, a string like "#test #test" will only highlight the first one.
-        var bookmark = text.startIndex
+        self.view.layoutIfNeeded()
         
-        // Iterate over each word.
-        // So far each word will look like:
-        // - I
-        // - visited
-        // - #123abc.go!
-        // The last word is a hashtag of #123abc
-        // Use the following hashtag rules:
-        // - Include the hashtag # in the URL
-        // - Only include alphanumeric characters.  Special chars and anything after are chopped off.
-        // - Hashtags can start with numbers.  But the whole thing can't be a number (#123abc is ok, #123 is not)
-        for word in words {
-            
-            var scheme:String? = nil
-            
-            if word.hasPrefix("#") {
-                scheme = schemeMap["#"]
-            } else if word.hasPrefix("@") {
-                scheme = schemeMap["@"]
-            }
-            
-            // Drop the # or @
-            var wordWithTagRemoved = String(word.dropFirst())
-            
-            // Drop any trailing punctuation
-            wordWithTagRemoved.dropTrailingNonAlphaNumericCharacters()
-            
-            // Make sure we still have a valid word (i.e. not just '#' or '@' by itself, not #100)
-            guard let schemeMatch = scheme, Int(wordWithTagRemoved) == nil && !wordWithTagRemoved.isEmpty
-                else { continue }
-            
-            let remainingRange = Range(bookmark..<text.endIndex)
-            
-            // URL syntax is http://123abc
-            
-            // Replace custom scheme with something like hash://123abc
-            // URLs actually don't need the forward slashes, so it becomes hash:123abc
-            // Custom scheme for @mentions looks like mention:123abc
-            // As with any URL, the string will have a blue color and is clickable
-            
-            if let matchRange = text.range(of: word, options: .literal, range: remainingRange),
-                let escapedString = wordWithTagRemoved.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
-                attributedString.addAttribute(NSAttributedStringKey.link, value: "\(schemeMatch):\(escapedString)", range: text.NSRangeFromRange(range: matchRange))
-            }
-            
-            // just cycled through a word. Move the bookmark forward by the length of the word plus a space
-            bookmark = text.index(bookmark, offsetBy: word.dropFirst().count)
+        if hidden {
+            print(hidden)
+            menuButton.isHidden = true
+        } else {
+            menuButton.isHidden = false
         }
-        
-        self.attributedText = attributedString
     }
     
-    func convertHashtags(text: String) -> NSAttributedString {
-        let attrString = NSMutableAttributedString(string: text)
-        attrString.beginEditing()
-        // match all hashtags
-        do {
-            // Find all the hashtags in our string
-            let regex = try NSRegularExpression(pattern: "(?:\\s|^)(#(?:[a-zA-Z].*?|\\d+[a-zA-Z]+.*?))\\b", options: NSRegularExpression.Options.anchorsMatchLines)
-            let results = regex.matches(in: text ,options: NSRegularExpression.MatchingOptions.withoutAnchoringBounds, range: NSMakeRange(0, text.characters.count))
-            let array = results.map { (text as NSString).substring(with: $0.range) }
-            for hashtag in array {
-                // get range of the hashtag in the main string
-                let range = (attrString.string as NSString).range(of: hashtag)
-                // add a colour to the hashtag
-                attrString.addAttribute(NSAttributedStringKey.foregroundColor, value: UIColor.blue , range: range)
-            }
-            attrString.endEditing()
-        }
-        catch {
-            attrString.endEditing()
-        }
-        return attrString
+    @objc private func menuButtonAction(sender: UIButton) {
+        self.selectedIndex = 2
     }
-}
-
-extension UITextView {
     
-    func resolveHash() {
-        
-        // turn string in to NSString
-        let nsText = NSString(string: self.text)
-        
-        // this needs to be an array of NSString.  String does not work.
-        let words = nsText.components(separatedBy: CharacterSet(charactersIn: "#ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_").inverted)
-        
-        // you can staple URLs onto attributed strings
-        let attrString = NSMutableAttributedString()
-        attrString.setAttributedString(self.attributedText)
-        
-        // tag each word if it has a hashtag
-        for word in words {
-            if word.count < 3 {
-                continue
-            }
-            
-            // found a word that is prepended by a hashtag!
-            // homework for you: implement @mentions here too.
-            if word.hasPrefix("#") {
-                
-                // a range is the character position, followed by how many characters are in the word.
-                // we need this because we staple the "href" to this range.
-                let matchRange:NSRange = nsText.range(of: word as String)
-                
-                // drop the hashtag
-                let stringifiedWord = word.dropFirst()
-                if let firstChar = stringifiedWord.unicodeScalars.first, NSCharacterSet.decimalDigits.contains(firstChar) {
-                    // hashtag contains a number, like "#1"
-                    // so don't make it clickable
-                } else {
-                    // set a link for when the user clicks on this word.
-                    // it's not enough to use the word "hash", but you need the url scheme syntax "hash://"
-                    // note:  since it's a URL now, the color is set to the project's tint color
-                    attrString.addAttribute(NSAttributedStringKey.link, value: "hash:\(stringifiedWord)", range: matchRange)
-                }
-                
-            }
-        }
-        
-        // we're used to textView.text
-        // but here we use textView.attributedText
-        // again, this will also wipe out any fonts and colors from the storyboard,
-        // so remember to re-add them in the attrs dictionary above
-        self.attributedText = attrString
-    }
 }
 
 

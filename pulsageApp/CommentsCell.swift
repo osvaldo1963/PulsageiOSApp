@@ -7,7 +7,7 @@ class CommentCell: UITableViewCell {
         imageview.contentMode = .scaleAspectFill
         imageview.clipsToBounds = true
         imageview.translatesAutoresizingMaskIntoConstraints = false
-        imageview.layer.cornerRadius = 40
+        
         return imageview
     }()
     
@@ -39,15 +39,17 @@ class CommentCell: UITableViewCell {
     }
     
     override func layoutSubviews() {
-        self.selectionStyle = .none
-        
         super.layoutSubviews()
+        self.selectionStyle = .none
         
         self.addSubview(self.profilePicture)
         self.profilePicture.topAnchor.constraint(equalTo: self.topAnchor, constant: 10).isActive = true
         self.profilePicture.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 10).isActive = true
-        self.profilePicture.heightAnchor.constraint(equalToConstant: 80).isActive = true
-        self.profilePicture.widthAnchor.constraint(equalToConstant: 80).isActive = true
+        self.profilePicture.widthAnchor.constraint(equalToConstant: frame.size.height - 20).isActive = true
+        self.profilePicture.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -10).isActive = true
+        let half = frame.size.height - 20
+        self.profilePicture.layer.cornerRadius = half / 2
+        
         
         self.addSubview(self.linkToProfile)
         self.linkToProfile.topAnchor.constraint(equalTo: self.topAnchor, constant: 10).isActive = true
@@ -59,6 +61,6 @@ class CommentCell: UITableViewCell {
         self.commentText.topAnchor.constraint(equalTo: self.linkToProfile.bottomAnchor, constant: 5).isActive = true
         self.commentText.leftAnchor.constraint(equalTo: self.profilePicture.rightAnchor, constant: 10).isActive = true
         self.commentText.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -10).isActive = true
-        self.commentText.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
+        self.commentText.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -10).isActive = true
     }
 }

@@ -17,17 +17,8 @@ class collectionHeaderCell: UICollectionViewCell {
         return vw
     }()
     
-    public lazy var challengePlace: UILabel = {
-        let label = UILabel()
-        label.textColor = .white
-        label.text = "Best"
-        label.font = UIFont.systemFont(ofSize: 18)
-        label.font = UIFont.boldSystemFont(ofSize: 17)
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
     
-    public lazy var videoDescription: UITextView = {
+    public lazy var videoDescription: UITextView = {        //<=========== this is not added to the cell subview if this is not need it remove it
         let tv = UITextView()
         tv.isEditable = false
         tv.textColor = .white
@@ -46,6 +37,7 @@ class collectionHeaderCell: UICollectionViewCell {
         gradiendL.endPoint = CGPoint(x: 1.0, y: 0.5)
         gradiendL.frame = self.blackCover.bounds
         self.blackCover.layer.insertSublayer(gradiendL, at: 0)
+      
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -56,27 +48,14 @@ class collectionHeaderCell: UICollectionViewCell {
         
         self.addSubview(self.thumbnail)
         self.thumbnail.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
-        self.thumbnail.leftAnchor.constraint(equalTo: self.leftAnchor).isActive = true
-        self.thumbnail.rightAnchor.constraint(equalTo: self.rightAnchor).isActive = true
+        self.thumbnail.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 10).isActive = true
+        self.thumbnail.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -10).isActive = true
         self.thumbnail.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
         
         self.addSubview(self.blackCover)
         self.blackCover.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
-        self.blackCover.leftAnchor.constraint(equalTo: self.leftAnchor).isActive = true
-        self.blackCover.rightAnchor.constraint(equalTo: self.rightAnchor).isActive = true
+        self.blackCover.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 10).isActive = true
+        self.blackCover.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -10).isActive = true
         self.blackCover.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
-        
-        self.addSubview(self.challengePlace)
-        self.challengePlace.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
-        self.challengePlace.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -10).isActive = true
-        self.challengePlace.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 10).isActive = true
-        self.challengePlace.heightAnchor.constraint(equalToConstant: 30).isActive = true
-        
-        self.addSubview(self.videoDescription)
-        self.videoDescription.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -40).isActive = true
-        self.videoDescription.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 10).isActive = true
-        self.videoDescription.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -10).isActive = true
-        self.videoDescription.heightAnchor.constraint(equalToConstant: 30).isActive = true
-        
     }
 }

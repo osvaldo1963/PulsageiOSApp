@@ -26,17 +26,6 @@ class RewardItem: UIViewController {
         return result
     }
     
-    fileprivate lazy var rewardText: UILabel = {
-        let label = UILabel()
-        label.frame = CGRect(x: 60 , y: 70, width: self.viewWidth - 120, height: 40)
-        label.font = UIFont.systemFont(ofSize: 20)
-        label.text = "R E W A R D"
-        label.font = UIFont(name: "Segoe", size: 20)
-        label.textAlignment = .center
-        label.textColor = .black
-        return label
-    }()
-    
     fileprivate lazy var sposorLogo: UIImageView = {
         let imageview = UIImageView()
         imageview.backgroundColor = .gray
@@ -82,42 +71,25 @@ class RewardItem: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        let safeview = self.view.safeAreaLayoutGuide
         self.menuController.delegate = self
         self.view.backgroundColor = .white
-        self.view.addSubview(self.rewardText)
+        
         self.view.addSubview(self.sposorLogo)
         self.view.addSubview(self.itemPicture)
         self.view.addSubview(self.itemDescription)
         self.view.addSubview(self.backButton)
-        
-        
-        
        
     }
     
-   
-    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        self.navigationController?.navigationBar.topItem?.title = "Name"
-        self.navigationProps()
+        self.navigationController?.navigationBar.topItem?.title = "Challenge Reward"
         self.getData()
-        
-        
- 
 
     }
     
-    
-    fileprivate func navigationProps() {
-        let videoIcon      = UIImage.init(icon: .FAVideoCamera, size: CGSize(width: 25, height: 30))
-        let videoCameraBtn = UIBarButtonItem(image: videoIcon, style: .plain, target: self, action: #selector(cameraFunction))
-        let menuIcon       = UIImage.init(icon: .FAEllipsisH, size: CGSize(width: 25, height: 30))
-        let menuBtn        = UIBarButtonItem(image: menuIcon, style: .plain, target: self, action: #selector(Menu))
-        
-        self.navigationItem.setRightBarButtonItems([menuBtn ,videoCameraBtn], animated: true)
-    }
+  
     // Mark: present Camera view controller
     @objc private func cameraFunction() {
         if PFUser.current() != nil {
@@ -144,13 +116,13 @@ class RewardItem: UIViewController {
     
     fileprivate func getData() {
         let challengeQuery = PFQuery(className: "Rewards")
-        challengeQuery.whereKey("for", equalTo: self.challengeid)
+        challengeQuery.whereKey("objectId", equalTo: self.challengeid)
         challengeQuery.getFirstObjectInBackground { (data, error) in
             guard let reward = data else {return}
             guard let fromSponsor = reward["from"] as? String else {return}
             guard let rewardPictureUrl = reward["itemPicture"] as? PFFile else {return}
             guard let rewardDescription = reward["itemDescription"] as? String else {return}
-            self.itemPicture.sd_setImage(with: URL(string: rewardPictureUrl.url!))
+            self.itemPicture.sd_setImage(with: rewardPictureUrl.getImage())
             self.itemDescription.text = rewardDescription
             self.getSponsorData(id: fromSponsor)
         }
@@ -165,7 +137,6 @@ class RewardItem: UIViewController {
             guard let sponsorLogo = sponsor["logo"] as? PFFile else {return}
             guard let sponsorName = sponsor["companyName"] as? String else {return}
             self.sposorLogo.sd_setImage(with: URL(string:sponsorLogo.url!))
-            self.navigationController?.navigationBar.topItem?.title = sponsorName
         }
     }
     

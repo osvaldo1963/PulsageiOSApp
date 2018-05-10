@@ -9,7 +9,7 @@ class AboutText {
 
     Pulsage inc (hereinafter “Pulsage”) owns and operates this Website and app. In this document the terms “Website”, “Site”, and “app” will be used interchangeably. This document governs your relationship with Pulsage (“Website” or “Site”). Access to and use of this Website and the products and services available through this Website (collectively, the "Services") are subject to the following terms, conditions and notices (the "Terms and Conditions" or “Terms of Service”). By using the Services, you are agreeing to all of the Terms and Conditions, as may be updated by us from time to time. You should check this page regularly to take notice of any changes we may have made to the Terms and Conditions.
 
-    Please read these terms in full before you use this Website. If you do not accept these Terms and Conditions, please do not use this Website. Your continued use of this site confirms your acceptance of these terms.
+    Please read these terms in full before you use this Website and App. If you do not accept these Terms and Conditions, please do not use this Website. Your continued use of this site confirms your acceptance of these terms.
 
     Access to this Website is permitted on a temporary basis, and we reserve the right to withdraw or amend the Services without notice. We will not be liable if for any reason this Website is unavailable at any time or for any period. From time to time, we may restrict access to some parts or all of this Website.
 

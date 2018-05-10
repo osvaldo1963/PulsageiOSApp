@@ -1,11 +1,11 @@
 import UIKit
 import Parse
 
-class search: UIViewController {
+class search: PulsageViewController {
     
-    //fileprivate variables
-    fileprivate var filterHolder = [PFObject]()
-    fileprivate let collectionid = "cellId"
+    //private variables
+    private var filterHolder = [PFObject]()
+    private let collectionid = "cellId"
     //============================
     
     //Mark: fileprivate visual objects
@@ -15,8 +15,9 @@ class search: UIViewController {
         searchbar.searchBarStyle = .prominent
         searchbar.delegate = self
         searchbar.sizeToFit()
-        searchbar.barTintColor = UIColor(red:0.85, green:0.34, blue:0.33, alpha:1.0)
-        searchbar.tintColor = .white
+        searchbar.barTintColor = .white
+        searchbar.tintColor = .black
+        searchbar.layer.backgroundColor = UIColor.clear.cgColor
         searchbar.translatesAutoresizingMaskIntoConstraints = false
         return searchbar
     }()
@@ -46,24 +47,28 @@ class search: UIViewController {
         DispatchQueue.global(qos: .userInitiated).async {
             self.getBestVideo()
         }
-        
+        self.view.backgroundColor = UIColor(red:0.85, green:0.34, blue:0.33, alpha:1.0)
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        self.navigationController?.navigationBar.isHidden = true
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         self.navigationController?.navigationBar.isHidden = false
-        
-        UIApplication.shared.statusBarView?.backgroundColor = .clear
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        self.navigationController?.navigationBar.isHidden = true
-        UIApplication.shared.statusBarView?.backgroundColor = UIColor(red:0.87, green:0.36, blue:0.35, alpha:1.0)
+        
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        
+       
     }
     
     //=====================================================
@@ -72,7 +77,7 @@ class search: UIViewController {
         self.view.backgroundColor = .white
         
         self.view.addSubview(self.searchBar)
-        self.searchBar.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: -46).isActive = true
+        self.searchBar.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
         self.searchBar.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor).isActive = true
         self.searchBar.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor).isActive = true
         self.searchBar.heightAnchor.constraint(equalToConstant: 60).isActive = true
@@ -101,7 +106,6 @@ extension search: UISearchBarDelegate {
         if !searchText.isEmpty {
             let query = PFQuery(className: "Videos")
             query.whereKey("name", contains: searchText)
-            query.whereKey("block", notEqualTo: true)
             query.findObjectsInBackground { (results, error) in
                 guard let result = results else {return}
                 self.filterHolder = result
@@ -157,79 +161,3 @@ extension search: UICollectionViewDelegate, UICollectionViewDataSource {
     }
     
 }
-
-/*
-class search: UIViewController {
-    
-    var data = ["San Francisco","New York","San Jose","Chicago","Los Angeles","Austin","Seattle"]
- 
-    
- 
-    
-    fileprivate lazy var searchTable: UITableView = {
-        let table = UITableView()
-            table.frame = CGRect(x: 0, y: 107, width: self.view.frame.size.width, height: self.view.frame.size.height - 98)
-            table.delegate = self
-            table.dataSource = self
-            table.register(VideosCell.self, forCellReuseIdentifier: "id")
-        return table
-    }()
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        self.view.backgroundColor = .white
-        self.SubViews()
-    }
-    
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        self.view.endEditing(true)
-    }
-    
-    fileprivate func SubViews() {
-        self.view.addSubview(self.searchBar)
-        self.view.addSubview(self.searchTable)
-    }
-
-}
-
-
-
-extension search: UITableViewDelegate, UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.filtered.count
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "id", for: indexPath) as? VideosCell
-        let video = self.filtered[indexPath.row]
-        let pffile = video["thumbnail"] as! PFFile //get image and put as pffile
-        let url = URL(string: pffile.url!) //string url to url class
-        let description = video["description"] as! String
-        
-        cell?.titleText = video["name"] as! String
-        cell?.videos.sd_setImage(with: url)
-        cell?.viewText = description
-        cell?.postedbyText = ""
-        return cell!
-    }
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 100
-    }
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let videoPlayer = VideoPlayer()
-        let section = self.filtered[indexPath.section]
-        
-       // let row = section[indexPath.row]
-        guard let videourl = section["video"] as? PFFile else {return}
-        guard let title = section["name"] as? String else {return}
-        guard let objectid = section.objectId else {return}
-        guard let created = section.createdAt  else {return}
-        
-        
-        //videoPlayer.getRealetedVideos = self.filtered[indexPath.section]
-        videoPlayer.videdata = section
-        
-        self.present(videoPlayer, animated: true, completion: nil)
-    }
-}
-*/

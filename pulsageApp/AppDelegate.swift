@@ -7,17 +7,14 @@ import AVFoundation
 import FBSDKCoreKit
 import UserNotifications
 import NotificationBannerSwift
-import AWSCore
-import AWSPinpoint
-import AWSMobileClient
+import GoogleSignIn
 
 
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate  {
     
     var window: UIWindow?
-    var pinpoint: AWSPinpoint?
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         
@@ -25,11 +22,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         self.setParse()
         self.facebookSdkSetUp()
         self.notificationSettings(application: application)
-        
-        AWSMobileClient.sharedInstance().interceptApplication(application,didFinishLaunchingWithOptions: launchOptions)
-        self.pinpoint =  AWSPinpoint(configuration: AWSPinpointConfiguration.defaultPinpointConfiguration(launchOptions: launchOptions))
-        
-        
+        self.googleSdkSetup()
         application.applicationIconBadgeNumber = 0
         let center = UNUserNotificationCenter.current()
         center.removeAllDeliveredNotifications()
@@ -42,48 +35,73 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.makeKeyAndVisible()
         window?.rootViewController = UINavigationController(rootViewController: SplashAnimation())
+        UNUserNotificationCenter.current().delegate = self
+    
         return FBSDKApplicationDelegate.sharedInstance().application(application, didFinishLaunchingWithOptions: launchOptions)
+        
+        
         
         
     }
     
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        let defaults = UserDefaults.standard
+        defaults.set(deviceToken, forKey: "deviceToken")
+        
         let install = PFInstallation.current()
         install?.setDeviceTokenFrom(deviceToken)
-        install?.saveInBackground(block: { (success, error) in
-            if error == nil {
-                
-            }
-        })
-        PFPush.subscribeToChannel(inBackground: "globalChannel") { (success, error) in
-            if error == nil {
-                if success {
-                    //channel connected successfuly
-                } else {
-                    
-                }
-            }
-        }
-        
-        PFPush.subscribeToChannel(inBackground: "globalChannel") { (success, error) in
-            if error == nil {
-                if success {
-                    //channel connected successfuly
-                } else {
-                    
-                }
-            }
-        }
-        
-        
+        install?.saveInBackground()
         
     }
+    
+    
     
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
         print(error)
     }
     func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any]) {
-     
+        switch application.applicationState {
+        case .active:
+             //app is currently active, can update badges count here
+            print("push while is active \(userInfo)")
+            break
+        case .inactive:
+            //app is transitioning from background to foreground (user taps notification), do what you need when user taps here
+            print("push while is inactive")
+            break
+        case .background:
+             //app is in background, if content-available key of your notification is set to 1, poll to your backend to retrieve data and update your interface here
+            print("push while is background")
+            break
+        default:
+            break
+        }
+    }
+    
+    func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+        print(userInfo)
+        switch application.applicationState {
+            case .active:
+            //app is currently active, can update badges count here
+            print("push while is active \(userInfo)")
+            break
+            case .inactive:
+            //app is transitioning from background to foreground (user taps notification), do what you need when user taps here
+            print("push while is inactive")
+            break
+            case .background:
+            //app is in background, if content-available key of your notification is set to 1, poll to your backend to retrieve data and update your interface here
+            print("push while is background")
+            break
+            default:
+            break
+        }
+    }
+    
+    //Mark: Google Sdk Props
+    
+    func googleSdkSetup() {
+        GIDSignIn.sharedInstance().clientID = "123142531935-kteal54ptfom3m6oti9s9aob7arejk78.apps.googleusercontent.com"
     }
     
     //Mark: Parse Settings
@@ -107,6 +125,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 UIApplication.shared.canOpenURL(Url)
             } else {
                 guard let err = error else {return}
+                print(err)
               
             }
         }
@@ -118,6 +137,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let options: UNAuthorizationOptions = [.alert, .badge, .sound]
         center.requestAuthorization(options: options) { (authorized, error) in
             if authorized {
+                
+                let action = UNNotificationAction(identifier: "addToCal", title: "Zum Kalender hinzufügen", options: [])
+                let category = UNNotificationCategory(identifier: "NEW_SESSION", actions: [action], intentIdentifiers: [], options: [])
+                UNUserNotificationCenter.current().setNotificationCategories([category])
+                
                 DispatchQueue.main.async {
                     application.registerForRemoteNotifications()
                 }
@@ -125,27 +149,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             }
         }
     }
-    
-    func application(_ application: UIApplication, open url: URL, sourceApplication: String?, annotation: Any) -> Bool {
-        print("url \(url)")
-        print("url path \(url.path)")
-        print("url host \(url.host)")
 
-        guard let urlPath = url.path as? String else {return true}
+    
+    func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool {
+        print(url.path)
+        let urlPath = url.path
         if urlPath == "/video" {
-            print("it detects inner path")
-            UIApplication.shared.statusBarStyle = .lightContent
             
-            window = UIWindow(frame: UIScreen.main.bounds)
-            window?.makeKeyAndVisible()
-            window?.rootViewController = UINavigationController(rootViewController: VideoPlayer())
-            return true
         }
         
         
-        return FBSDKApplicationDelegate.sharedInstance().application(application, open: url, sourceApplication: sourceApplication, annotation: annotation)
+        GIDSignIn.sharedInstance().handle(url, sourceApplication: options[UIApplicationOpenURLOptionsKey.sourceApplication] as? String, annotation: [UIApplicationOpenURLOptionsKey.annotation.rawValue])
+        FBSDKApplicationDelegate.sharedInstance().application(app, open: url, options: options)
+        return true
     }
- 
+
     func applicationWillResignActive(_ application: UIApplication) {
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
         // Use this method to pause ongoing tasks, disable timers, and invalidate graphics rendering callbacks. Games should use this method to pause the game.
@@ -192,6 +210,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         if url.absoluteString != "" {
             do {
+                let banner = NotificationBanner(title: "Video is Uploading!!")
+                banner.show()
                 let filedat = try Data(contentsOf: url)
                 let pffile = PFFile(name: "video.mp4", data: filedat)
                 pffile?.saveInBackground({ (finished, error) in
@@ -206,6 +226,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                                 query["video"] = pffile
                                 query["User"] = user
                                 query["views"] = 0
+                                query["Votes"] = []
                                 //code change
                                 if challenge != nil {
                                     query["Challenges"] = challenge
@@ -225,8 +246,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                                         let successBanner = NotificationBanner(title: "Video Finish Uploading", subtitle: "Your video is done uploading", leftView: nil, rightView: nil, style: .success, colors:nil)
                                         successBanner.show()
                                         successBanner.onTap = {
-                                            print("si sriber")
+                                            print("Video")
                                         }
+                                        
+                                        guard let challengeData = challenge else {return}
+                                        guard let senderuserId = user.objectId else {return}
+                                        guard let usercha = challengeData["User"] as? PFObject else {return}
+                                        guard let chaDescription = challengeData["description"] as? String else {return}
+                                        guard let userid = usercha.objectId else {return}
+                                        guard let username = usercha["username"] as? String else {return}
+                                        let parsefunctions = ParseFunctions()
+                                        
+                                        parsefunctions.sendpushNifications(receiver: userid, message: "\(username.getTextFromEmail()) just upload a video in to your challenge \(chaDescription)", sender: senderuserId)
+                                        
                                     } else {
                                         let errorBanner = NotificationBanner(title: "Problem while Uploading Video", subtitle: "check your internet connection", leftView: nil, rightView: nil, style: .danger, colors:nil)
                                         errorBanner.show()
@@ -236,14 +268,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                         })
                     }
                 }, progressBlock: { (timing) in
-                    var timer = 1
-                    //Mark: When video started uploading
-                    if Int(timing) == 1  {
-                        let banner = NotificationBanner(title: "Video is Uploading!!")
-                        banner.show()
-                        timer = timer + 1
-                    } 
-                
                 })
             } catch {
                 let alert = UIAlertController(title: "Error", message: "it was an error uploding video", preferredStyle: .alert)
@@ -287,46 +311,22 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 
                 let insert = PFObject(className: "hashtag")
                 insert["tittle"] = hash.dropFirst()
-                insert.saveEventually({ (success, error) in
-                    print("is beign saved")
-                })
+                insert.saveEventually().waitUntilFinished()
                 
                 let query = PFQuery(className: "hashtag")
                 query.whereKey("tittle", equalTo: hash.dropFirst())
+                
                 do {
-                    let check = try query.getFirstObject()
+                    let check = try query.getObjectWithId(insert.objectId!)
                     guard let object  = check.objectId else {return String()}
                     return object
                 } catch {
-                    return "is is empty "
+                    return "it is empty"
                 }
-                
+            
             }
           
         }
-        /*
-        for hash in hashTags {
-            let query = PFQuery(className: "hashtag")
-            query.whereKey("tittle", equalTo: hash.dropFirst())
-            do {
-                let check = try query.getFirstObject()
-                if let object  = check.objectId {
-                    holder.append(object)
-                }
-                
-            } catch {
-                print(hash)
-                let insert = PFObject(className: "hashtag")
-                insert["tittle"] = hash.dropFirst()
-                insert.saveEventually()
-                if let id = insert.objectId {
-                    holder.append(id)
-                }
-                
-                   
-            }
-        }
-        */
         return map
     }
     //=================================================================
@@ -383,6 +383,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
 }
+
+ extension AppDelegate {
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        if response.actionIdentifier == "addToCal" {
+            
+            //Handel action.
+        }
+    }
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        
+    }
+    
+ }
+ 
 
 
 

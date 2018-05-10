@@ -5,8 +5,8 @@ import FBSDKLoginKit
 
 class Presentation: UIViewController {
     
-    //Mark: UIView Objects =====================
-    
+    //Mark: UIView Objects =============================================
+    //===================================================================
 
     fileprivate lazy var slogan: UILabel = {
         let label = UILabel()
@@ -70,6 +70,7 @@ class Presentation: UIViewController {
     }()
     
     //===================================================================
+    //===================================================================
     
     
     override func viewDidLoad() {
@@ -85,6 +86,7 @@ class Presentation: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
     }
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         self.navigationController?.navigationBar.isHidden = true
@@ -216,8 +218,7 @@ class Presentation: UIViewController {
             if error == nil {
                 //do something after login success
                 let tabBarViewcontroller = TabBar()
-                self.navigationController?.pushViewController(tabBarViewcontroller, animated: true)
-              
+                self.present(tabBarViewcontroller, animated: true, completion: nil)
             } else {
                 guard let err = error?.localizedDescription else {return}
                 self.simpleAlert(Message: "\(err) \n if you sign up using facebook you need to login using facebook", title: "Login Error")

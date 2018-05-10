@@ -37,13 +37,13 @@ class HashTag: UIViewController {
         super.viewDidLoad()
         self.view.backgroundColor = .white
         self.addsubviews()
-        
-    }
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
         DispatchQueue.global(qos: .userInteractive).async {
             self.gethashtag()
         }
+    }
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
         self.navigationController?.navigationBar.topItem?.title = "#\(self.hashTagString)"
         
     }
@@ -127,6 +127,12 @@ extension HashTag: UICollectionViewDelegate, UICollectionViewDataSource {
         guard let url = URL(string: fileurl) else {return UICollectionViewCell()}
         collectionCell.Thumbnail.sd_setImage(with: url, completed: nil)
         return collectionCell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let videoPlayer = VideoPlayer()
+        videoPlayer.videdata = self.dataHolder[indexPath.item]
+        self.navigationController?.pushViewController(videoPlayer, animated: true)
     }
     
     

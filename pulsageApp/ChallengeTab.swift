@@ -7,6 +7,7 @@ class ChallengeTab: UIViewController {
     
     private let cellId = "cellid"
     private var challengesForTable: [PFObject] = []
+    private let parseData = ParseFunctions()
     
     private lazy var  header: ChallengeHeader = {
         let header = ChallengeHeader()
@@ -45,7 +46,6 @@ class ChallengeTab: UIViewController {
         DispatchQueue.global(qos: .userInteractive).async {
             self.setHeaderData()
         }
-        
         ///
     }
     
@@ -59,7 +59,7 @@ class ChallengeTab: UIViewController {
         //let challengeData = self.PFObjectData
         
         //guard let navigationTitle = challengeData["title"] as? String else {return}
-        //self.navigationController?.navigationBar.topItem?.title = navigationTitle
+        self.navigationController?.navigationBar.topItem?.title = "Challenge"
     }
     
     private func setViewControllerProps() {
@@ -74,8 +74,11 @@ class ChallengeTab: UIViewController {
         self.tableview.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor).isActive  = true
         self.tableview.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
         
+        
+        
         self.tableview.addSubview(self.activityIndicator)
         self.activityIndicator.startAnimating()
+        
     }
     ///
     
@@ -88,8 +91,8 @@ class ChallengeTab: UIViewController {
         query.getFirstObjectInBackground { (data, error) in
             if error == nil {
                 guard let challenge = data else {return}
+                guard let challDescription = challenge["description"] as? String else  {return}
                 self.getVideosForChallenge(challengeData: challenge)
-                
                 
                 guard let user = challenge["User"] as? PFObject else {return}
                 user.fetchInBackground { (object, error) in
@@ -99,34 +102,19 @@ class ChallengeTab: UIViewController {
                         guard let PictureUrl = objectFiel.url else {return}
                         guard let urlLink  = URL(string: PictureUrl) else {return}
                         guard let userName = userData["username"] as? String else {return}
+                        
                         self.header.creatorProfileBtn.setTitle("@\(userName.getTextFromEmail())", for: .normal)
+                        let tapGesture = GestureRescognizer(target: self, action: #selector(self.presentprofile(sender:)))
+                        tapGesture.data = userData
                         self.header.challengeCreatorImage.sd_setImage(with: urlLink)
+                        self.header.challengeCreatorImage.isUserInteractionEnabled = true
+                        self.header.challengeCreatorImage.addGestureRecognizer(tapGesture)
+                        
                     }
-                    
                 }
+                self.header.challengeCaption.text = challDescription
             }
         }
-        /*
-        challengeData.fetchFromLocalDatastoreInBackground { (data, error) in
-            if error == nil {
-                guard let challenge = data else {return}
-                guard let user = challenge["User"] as? PFObject else {return}
-                user.fetchInBackground { (object, error) in
-                    if error == nil {
-                        guard let userData = object else {return}
-                        guard let objectFiel = userData["profilePicture"] as? PFFile else {return}
-                        guard let PictureUrl = objectFiel.url else {return}
-                        guard let urlLink  = URL(string: PictureUrl) else {return}
-                        guard let userName = userData["username"] as? String else {return}
-                        self.header.creatorProfileBtn.setTitle("@\(userName.getTextFromEmail())", for: .normal)
-                        self.header.challengeCreatorImage.sd_setImage(with: urlLink)
-                    }
-                    
-                }
-                self.getVideosForChallenge(challengeData: challenge)
-            }
-        }
-        */
         
     }
     
@@ -151,28 +139,7 @@ class ChallengeTab: UIViewController {
                 }
             }
         }
-        /*
-        PFCloud.callFunction(inBackground: "getChallenges", withParameters: ["challenge": challengeId]) { (result, error) in
-            if error == nil {
-                guard let object = result as? [PFObject] else {return}
-                self.header.objects = self.voteCount(videos: object) //<======= Call Vote count function
-                self.challengesForTable = object
-                DispatchQueue.main.async {
-                    self.tableview.reloadData()
-                    self.header.pageController.reloadData()
-                    self.activityIndicator.stopAnimating()
-                }
-                
-            } else {
-             
-                self.activityIndicator.stopAnimating()
-            }
-            
-        }
- */
     }
-    
-    
     
     private func voteCount(videos: [PFObject]) -> [PFObject] {
         var result = [Int]()
@@ -195,6 +162,76 @@ class ChallengeTab: UIViewController {
     
     }
     ///
+    
+    //=============================================================
+    //========================= Firs this one
+    //=============================================================
+    @objc private func presentprofile(sender: GestureRescognizer) {
+        guard let data = sender.data else {return}
+        let profileTab = ProfileTab()
+        profileTab.userObject = data
+        self.navigationController?.pushViewController(profileTab, animated: true)
+    }
+    
+    @objc private func presentProfile(sender: iconButton) {
+        guard let data = sender.object else {return}
+        let profileTab = ProfileTab()
+        profileTab.userObject = data
+        self.navigationController?.pushViewController(profileTab, animated: true)
+    }
+    //=============================================================
+    //=============================================================
+    
+    
+    //================================================
+    //Mark: Multi porpuse Functions
+    //================================================
+    @objc private func presentChallenge(sender: CustomBtn) {
+        guard let obData = sender.object?.objectId else {return}
+        let challegeview = ChallengeTab()
+        challegeview.PFObjectData = obData
+        self.navigationController?.pushViewController(challegeview, animated: true)
+    }
+    
+    @objc private func sendToProfile(sender: UIButton) {
+        guard let userid = sender.titleLabel?.text else {return}
+        let userprofile = UserProfile()
+        userprofile.userid = userid
+        self.navigationController?.pushViewController(userprofile, animated: true)
+    }
+    
+    private func PresentVideoPlayer(video: PFObject, RealetedVideos: [PFObject]?) {
+        let videoPlayer = VideoPlayer()
+        videoPlayer.videdata = video
+        self.navigationController?.pushViewController(videoPlayer, animated: true)
+    }
+    
+    private func presentHashTag(hashtag: String) {
+        let hastagPage = HashTag()
+        hastagPage.hashTagString = hashtag
+        self.navigationController?.pushViewController(hastagPage, animated: true)
+    }
+    
+    @objc private func commentPage(sender: iconButton) {
+        guard let videoData = sender.object else {return}
+        let commentPage = VideoComment()
+        commentPage.videoObject = videoData
+        self.navigationController?.pushViewController(commentPage, animated: true)
+    }
+    //================================================
+    //Mark: End Multi porpuse Functions
+    //================================================
+    @objc private func likeAction(sender: CustomBtn) {
+        self.parseData.likeButtonAction(sender: sender)
+    }
+    
+    @objc private func presentReward(sender: CustomBtn) {
+        guard let id  = sender.id else {return}
+        let rewardPage = RewardItem()
+        rewardPage.challengeid = id
+        self.navigationController?.pushViewController(rewardPage, animated: true)
+    }
+    
 }
 
 extension ChallengeTab: UITableViewDelegate, UITableViewDataSource {
@@ -206,7 +243,7 @@ extension ChallengeTab: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return 310
+        return 350
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -216,42 +253,8 @@ extension ChallengeTab: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: self.cellId, for: indexPath) as? VideoCell else {return UITableViewCell()}
         let videoForRow = self.challengesForTable[indexPath.row]
-        guard let videoComment = videoForRow["description"] as? String else {return UITableViewCell()}
         
-        cell.Header.challengeSponsor.isHidden = true
-        cell.Footer.rewardBtn.isHidden = true
-        cell.Footer.ChallengeText.isHidden = true
-        cell.Footer.ArrowBtn.isHidden = true
-        
-        //Header Data
-        guard let userData = videoForRow["User"] as? PFObject else {return UITableViewCell()}
-        userData.fetchInBackground { (result, error) in
-            if error == nil {
-                guard let user = result else {return}
-                guard let username = user["username"] as? String else {return}
-                guard let file = user["profilePicture"] as? PFFile else {return}
-                guard let fileurl = file.url else {return}
-                guard let picUrl = URL(string: fileurl) else {return}
-                
-                cell.Header.profileBotton.button.setTitle(" \(username.getTextFromEmail())", for: .normal)
-                cell.Header.profileImage.sd_setImage(with: picUrl)
-            } else {
-                print(error.debugDescription)
-            }
-        }
-        //Header Data
-        
-        //Thumnail Data
-        guard let file = videoForRow["thumbnail"] as? PFFile else {return UITableViewCell()}
-        guard let url = file.url else {return UITableViewCell()}
-        guard let picUrl = URL(string: url) else {return UITableViewCell()}
-        cell.Thubnail.sd_setImage(with: picUrl)
-        //Thumnail Data
-        
-        //Footer Data
-        cell.Footer.VideoDescription.text = videoComment
-        //Footer Data
-        return cell
+        return self.videoCell(cell: cell, row: videoForRow)
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -274,4 +277,104 @@ extension ChallengeTab: ChallengeHeaderTaped {
     }
 }
 
+extension ChallengeTab {
+    func videoCell(cell: VideoCell, row: PFObject) -> VideoCell{
+        
+        cell.Header.challengeSponsor.isHidden = true //only for sponsor section
+        row.fetchInBackground { (result, error) in
+            if error == nil {
+                guard let rowdata = result else {return} //<---- unwrap PFObject
+                //============ InMark: Header ==============
+                guard let user = rowdata["User"] as? PFUser else {return}
+                user.fetchInBackground { (userData, error) in
+                    if error == nil {
+                        guard let data = userData else {return }
+                        guard let userfile = data["profilePicture"] as? PFFile else {return}
+                        guard let userPicture = userfile.url else {return}
+                        let tapGesture = GestureRescognizer(target: self, action: #selector(self.presentprofile(sender:)))
+                        tapGesture.data = data
+                        cell.Header.profileImage.addGestureRecognizer(tapGesture)
+                        cell.Header.profileImage.isUserInteractionEnabled = true
+                        
+                        DispatchQueue.main.async {
+                            cell.Header.profileImage.sd_setImage(with: URL(string: userPicture), placeholderImage: UIImage(named: "User"), options: .transformAnimatedImage, completed: { (image, error, catched, url) in
+                            })
+                            cell.Header.profileBotton.button.setTitle("\(data.handle)", for: .normal)
+                        }
+                        cell.Header.profileBotton.button.object = data
+                        cell.Header.profileBotton.button.addTarget(self, action: #selector(self.presentProfile(sender:)), for: .touchUpInside)
+                    }
+                }
+                //=========== InMark: Header ==============
+                
+                //========== InMark: Body ==================
+                guard let file = rowdata["thumbnail"] as? PFFile else {return }
+                DispatchQueue.main.async {
+                    cell.Thubnail.sd_setImage(with: file.getImage(), completed: nil)
+                }
+                //========== InMark: Body ==================
+                
+                //========== InMark: Footer ==================
+                guard let challenge = rowdata["Challenges"] as? PFObject else {return}
+                //rocket icon props
+                if challenge.objectId == "nil" {
+                    DispatchQueue.main.async {
+                        cell.Footer.rocket.isEnabled = false
+                    }
+                } else {
+                    challenge.fetchInBackground { (cha, error) in
+                        if error == nil {
+                            guard let chadata = cha else {return}
+                            cell.Footer.rocket.isEnabled = true
+                            cell.Footer.rocket.object = chadata
+                            cell.Footer.rocket.addTarget(self, action: #selector(self.presentChallenge(sender:)), for: .touchUpInside)
+                            
+                            guard let rewardId = chadata["reward"] as? String else {return}
+                            print(rewardId)
+                            if rewardId.isEmpty {
+                                cell.Footer.ruby.isEnabled = false
+                            } else {
+                                cell.Footer.ruby.isEnabled = true
+                                cell.Footer.ruby.id = rewardId
+                                cell.Footer.ruby.addTarget(self, action: #selector(self.presentReward(sender:)), for: .touchUpInside)
+                            }
+                        }
+                    }
+                }
+                //comments icon props
+                cell.Footer.comment.object = row
+                cell.Footer.comment.addTarget(self, action: #selector(self.commentPage(sender:)), for: .touchUpInside)
+                
+                //like icon props
+                guard let voteForVideo = rowdata["Votes"] as? [String] else {return}
+                guard let currentUser = PFUser.current()?.objectId else  {return }
+                if voteForVideo.contains(currentUser) {
+                    DispatchQueue.main.async {
+                        let icon = UIImage(named: "redHart")
+                        cell.Footer.like.setImage(icon, for: .normal)
+                        cell.Footer.like.object = rowdata
+                        cell.Footer.like.addTarget(self, action: #selector(self.likeAction(sender:)), for: .touchUpInside)
+                    }
+                    
+                } else {
+                    DispatchQueue.main.async {
+                        let icon = UIImage(named: "heart")
+                        cell.Footer.like.setImage(icon, for: .normal)
+                        cell.Footer.like.object = rowdata
+                        cell.Footer.like.addTarget(self, action: #selector(self.likeAction(sender:)), for: .touchUpInside)
+                    }
+                }
+                //video description props
+                guard let videoDescription = rowdata["description"] as?  String else {return}
+                cell.Footer.VideoDescription.text = "\(videoDescription)"
+                cell.Footer.VideoDescription.handleHashtagTap({ (hash) in
+                    self.presentHashTag(hashtag: hash)
+                })
+                //========== InMark: Footer ==================
+            }
+        }
+        
+        return cell
+    }
+}
 

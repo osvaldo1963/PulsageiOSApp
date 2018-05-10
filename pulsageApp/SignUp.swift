@@ -3,18 +3,23 @@ import Parse
 import FBSDKCoreKit
 import FBSDKLoginKit
 import CryptoSwift
+import GoogleSignIn
 
-class SignUp: UIViewController {
+class SignUp: UIViewController, GIDSignInDelegate, GIDSignInUIDelegate  {
     
     fileprivate lazy var EmailInput: UITextField = {
         let textfield = UITextField()
         textfield.placeholder = "Enter Email"
-        textfield.backgroundColor = UIColor(red:0.93, green:0.94, blue:0.95, alpha:1.0)
-        textfield.layer.cornerRadius = 3
         textfield.setLeftPaddingPoints(6)
         textfield.keyboardType = .emailAddress
         textfield.autocorrectionType = .no
         textfield.autocapitalizationType = .none
+        textfield.backgroundColor = .white
+        textfield.textAlignment = .center
+        textfield.layer.cornerRadius = 20
+        textfield.layer.borderColor = UIColor.orange.cgColor
+        textfield.layer.borderWidth = 1
+        textfield.addTarget(self, action: #selector(self.validateEmail(textField:)), for: .editingChanged)
         textfield.translatesAutoresizingMaskIntoConstraints = false
         return textfield
     }()
@@ -22,12 +27,16 @@ class SignUp: UIViewController {
     fileprivate lazy var passwordInput: UITextField = {
         let textfield = UITextField()
         textfield.placeholder = "Enter Password"
-        textfield.backgroundColor = UIColor(red:0.93, green:0.94, blue:0.95, alpha:1.0)
         textfield.layer.cornerRadius = 3
         textfield.setLeftPaddingPoints(6)
         textfield.isSecureTextEntry = true
         textfield.autocorrectionType = .no
         textfield.autocapitalizationType = .none
+        textfield.backgroundColor = .white
+        textfield.textAlignment = .center
+        textfield.layer.cornerRadius = 20
+        textfield.layer.borderColor = UIColor.orange.cgColor
+        textfield.layer.borderWidth = 1
         textfield.translatesAutoresizingMaskIntoConstraints = false
         return textfield
     }()
@@ -35,15 +44,37 @@ class SignUp: UIViewController {
     fileprivate lazy var rePassInput: UITextField = {
         let textfield = UITextField()
         textfield.placeholder = "Confirm Password"
-        textfield.backgroundColor = UIColor(red:0.93, green:0.94, blue:0.95, alpha:1.0)
         textfield.layer.cornerRadius = 3
         textfield.setLeftPaddingPoints(6)
         textfield.isSecureTextEntry = true
         textfield.autocorrectionType = .no
         textfield.autocapitalizationType = .none
+        textfield.backgroundColor = .white
+        textfield.textAlignment = .center
+        textfield.layer.cornerRadius = 20
+        textfield.layer.borderColor = UIColor.orange.cgColor
+        textfield.layer.borderWidth = 1
         textfield.translatesAutoresizingMaskIntoConstraints = false
         return textfield
     }()
+    
+    fileprivate lazy var handleInput: UITextField = {
+        let textfield = UITextField()
+        textfield.placeholder = "Create Handle"
+        textfield.setLeftPaddingPoints(6)
+        textfield.keyboardType = .default
+        textfield.autocorrectionType = .yes
+        textfield.autocapitalizationType = .none
+        textfield.backgroundColor = .white
+        textfield.textAlignment = .center
+        textfield.layer.cornerRadius = 20
+        textfield.layer.borderColor = UIColor.orange.cgColor
+        textfield.layer.borderWidth = 1
+        textfield.addTarget(self, action: #selector(self.textDidChange(textFiled:)), for: .editingChanged)
+        textfield.translatesAutoresizingMaskIntoConstraints = false
+        return textfield
+    }()
+
     
     fileprivate lazy var or: UILabel = {
         let label = UILabel()
@@ -55,10 +86,18 @@ class SignUp: UIViewController {
     
     fileprivate lazy var facebookLogin: BonceButton = {
         let button = BonceButton()
-        button.setTitle("Log In with Facebook", for: .normal)
-        button.backgroundColor = UIColor(red:0.23, green:0.35, blue:0.60, alpha:1.0)
+        let icon = UIImage(named: "facebookicon")
+        button.setImage(icon, for: .normal)
         button.addTarget(self, action: #selector(loginManager), for: .touchUpInside)
-        button.layer.cornerRadius = 26
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
+    fileprivate lazy var googleLogin: BonceButton = {
+        let button = BonceButton()
+        let icon = UIImage(named: "googleicon")
+        button.setImage(icon, for: .normal)
+        button.addTarget(self, action: #selector(self.googleSignUp(sender:)), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -115,8 +154,16 @@ class SignUp: UIViewController {
         ///
         
         ///
+        self.view.addSubview(self.handleInput)
+        self.handleInput.topAnchor.constraint(equalTo: self.rePassInput.bottomAnchor, constant: 10).isActive = true
+        self.handleInput.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor, constant: 15).isActive = true
+        self.handleInput.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor, constant: -15).isActive = true
+        self.handleInput.heightAnchor.constraint(equalToConstant: 45).isActive = true
+        ///
+        
+        ///
         self.view.addSubview(self.or)
-        self.or.topAnchor.constraint(equalTo: self.rePassInput.bottomAnchor, constant: 20).isActive = true
+        self.or.topAnchor.constraint(equalTo: self.handleInput.bottomAnchor, constant: 20).isActive = true
         self.or.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor, constant: 15).isActive = true
         self.or.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor , constant: -15).isActive = true
         self.or.heightAnchor.constraint(equalToConstant: 30).isActive = true
@@ -125,9 +172,17 @@ class SignUp: UIViewController {
         ///
         self.view.addSubview(self.facebookLogin)
         self.facebookLogin.topAnchor.constraint(equalTo: self.or.bottomAnchor, constant: 20).isActive = true
-        self.facebookLogin.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor, constant: 15).isActive = true
-        self.facebookLogin.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor , constant: -15).isActive = true
-        self.facebookLogin.heightAnchor.constraint(equalToConstant: 55).isActive = true
+        self.facebookLogin.centerXAnchor.constraint(equalTo: self.view.centerXAnchor, constant: -50).isActive = true
+        self.facebookLogin.widthAnchor.constraint(equalToConstant: 60).isActive = true
+        self.facebookLogin.heightAnchor.constraint(equalToConstant: 60).isActive = true
+        ///
+        
+        ///
+        self.view.addSubview(self.googleLogin)
+        self.googleLogin.topAnchor.constraint(equalTo: self.or.bottomAnchor, constant: 20).isActive = true
+        self.googleLogin.centerXAnchor.constraint(equalTo: self.view.centerXAnchor, constant: 50).isActive = true
+        self.googleLogin.widthAnchor.constraint(equalToConstant: 60).isActive = true
+        self.googleLogin.heightAnchor.constraint(equalToConstant: 60).isActive = true
         ///
         
     }
@@ -158,33 +213,40 @@ class SignUp: UIViewController {
                 guard let userName = userinfo["name"] as? String else {return}
                 let nameSeparation = userName.components(separatedBy: " ")
                 
-                self.signUpAction(email: userEmail, pass: userEmail.sha512(), fbAccount: true, imageFromFB: urlPic, name: nameSeparation[0], lastName: nameSeparation[1])
+                self.signUpAction(email: userEmail, pass: userEmail.sha512(), fbAccount: true, googleAccount: false, imageFromApi: urlPic, name: nameSeparation[0], lastName: nameSeparation[1], handle: userName)
+                
             })
         }
     }
     //===================================
     
+    @objc private func googleSignUp(sender: BonceButton) {
+        GIDSignIn.sharedInstance().delegate = self
+        GIDSignIn.sharedInstance().uiDelegate = self
+        GIDSignIn.sharedInstance().signIn()
+    }
+    
     @objc fileprivate func signUp() {
-        guard let email = self.EmailInput.text, let pass = self.passwordInput.text, let repass = self.rePassInput.text else {return}
-        if email.isEmpty || pass.isEmpty || repass.isEmpty {
+        guard let email = self.EmailInput.text, let pass = self.passwordInput.text, let repass = self.rePassInput.text, let handleText = self.handleInput.text else {return}
+        if email.isEmpty || pass.isEmpty || repass.isEmpty || handleText.isEmpty {
             self.simpleAlert(Message: "all fields are required", title: "Sign Up error")
         } else {
             if pass == repass {
-                self.signUpAction(email: email, pass: pass, fbAccount: false, imageFromFB: "", name: "", lastName: "")
+                self.signUpAction(email: email, pass: pass, fbAccount: false, googleAccount: false, imageFromApi: "", name: "", lastName: "", handle: handleText)
             } else {
                 self.simpleAlert(Message: "Password and ConfirmPassword doesn't match", title: "Sign Up error")
             }
         }
     }
     
-    fileprivate func signUpAction(email: String, pass: String, fbAccount: Bool, imageFromFB: String, name: String, lastName: String) {
+    fileprivate func signUpAction(email: String, pass: String, fbAccount: Bool, googleAccount: Bool, imageFromApi: String, name: String, lastName: String, handle: String) {
         var imagefile: PFFile?
-        if imageFromFB == "" {
+        if imageFromApi == "" {
             let localimage = UIImage(named: "User.png")
             let imagedata = UIImagePNGRepresentation(localimage!)
             imagefile = PFFile(name: "default.png", data: imagedata!)
         } else {
-            let imagedata = try? Data(contentsOf: URL(string: imageFromFB)!)
+            let imagedata = try? Data(contentsOf: URL(string: imageFromApi)!)
             imagefile = PFFile(name: "default.png", data: imagedata!)
         }
         imagefile?.saveInBackground({ (succes, error) in
@@ -195,9 +257,12 @@ class SignUp: UIViewController {
                     user.email = email
                     user.password = pass
                     user["fbAccount"] = fbAccount
+                    user["googleAccount"] = googleAccount
                     user["profilePicture"] = imagefile
                     user["name"] = name
                     user["lastname"] = lastName
+                    user["companyAccount"] = false
+                    user["handle"] = handle
                     user.signUpInBackground(block: { (success, err) in
                         if success {
                             let tabBarViewcontroller = TabBar()
@@ -212,7 +277,54 @@ class SignUp: UIViewController {
         }, progressBlock: { (percentenge ) in
             print(percentenge)
         })
-        
+    }
     
+    @objc private func textDidChange(textFiled: UITextField) {
+        guard let text = textFiled.text else {return}
+        let userQuery = PFUser.query()
+        userQuery?.whereKey("handle", equalTo: text)
+        userQuery?.findObjectsInBackground(block: { (results, error) in
+            if error == nil {
+                guard let resultHandle = results else {return}
+                if resultHandle.count == 0 {
+                    textFiled.layer.borderColor = UIColor.orange.cgColor
+                    textFiled.layer.borderWidth = 1
+                    self.navigationController?.navigationBar.topItem?.rightBarButtonItem?.isEnabled = true
+                } else {
+                    textFiled.layer.borderColor = UIColor.red.cgColor
+                    textFiled.layer.borderWidth = 2
+                    self.navigationController?.navigationBar.topItem?.rightBarButtonItem?.isEnabled = false
+                }
+            }
+        })
+    }
+    
+    @objc private func validateEmail(textField: UITextField) {
+        guard let textResult = textField.text?.isEmail else {return}
+        if textResult {
+            textField.layer.borderColor = UIColor.orange.cgColor
+            textField.layer.borderWidth = 1
+            self.navigationController?.navigationBar.topItem?.rightBarButtonItem?.isEnabled = true
+        } else {
+            textField.layer.borderColor = UIColor.red.cgColor
+            textField.layer.borderWidth = 2
+            self.navigationController?.navigationBar.topItem?.rightBarButtonItem?.isEnabled = false
+        }
+    }
+    
+}
+
+extension SignUp {
+    func sign(_ signIn: GIDSignIn!, didSignInFor user: GIDGoogleUser!, withError error: Error!) {
+        if let error = error {
+            print(error)
+        } else {
+            guard let email = user.profile.email else {return}
+            guard let firstName = user.profile.name else {return}
+            guard let lastName = user.profile.familyName else {return}
+            self.signUpAction(email: email, pass: email.sha512(), fbAccount: false, googleAccount: true, imageFromApi: "", name: firstName, lastName: lastName, handle: firstName)
+        }
     }
 }
+
+

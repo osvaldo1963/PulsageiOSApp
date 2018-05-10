@@ -1,17 +1,32 @@
 import UIKit
 import Parse
 import SDWebImage
+import FBSDKCoreKit
+import FBSDKLoginKit
+import GoogleSignIn
 
-class ProfileTab: UIViewController {
+class ProfileTab: PulsageViewController {
     
+    
+    //Mark: Public variables
     public var userObject: PFObject?
+    //=====================================
+    
+    //Mark: Private variables
+    public var rootView = false
     private var ktableHeaderHeight = 220
     private let challengeCell = "challemgecell"
     private let videoCell = "videocell"
     private var currentData = [String: [PFObject]]()
     private var currentTab = ""
     private var follow = false
+    private let functions = DataFunctions()
+    private let parseData = ParseFunctions()
+     //=====================================
     
+    //==============================================================
+    //  Mark: Visual Objects
+    //==============================================================
     
     private lazy var tableHeader: ProfileHeader = {
         let hframe = CGRect(x: 0, y: 0, width: Int(self.view.frame.size.width), height: self.ktableHeaderHeight)
@@ -34,44 +49,65 @@ class ProfileTab: UIViewController {
         return table
     }()
     
+    //==============================================================
+    //  Mark: End Visual Objects
+    //==============================================================
+    
+    
+    //==============================================================
+    //  Mark: UIViewController Defaults Functions
+    //==============================================================
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.addviews()
         if userObject == nil {
             self.userObject  = PFUser.current()
             DispatchQueue.main.async {
-                //self.tableview.reloadData()
+                self.getProfileData(index: 0)
+                
             }
         }
+        self.checkUserType()
+        
+        
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        //Set title for navigation Bar
         guard let user = self.userObject else {return}
-        guard let username = user["username"] as? String else {return}
-        self.navigationController?.navigationBar.topItem?.title = username.getTextFromEmail()
-       /*
-        guard let current = PFUser.current() else {return}
-      
-       
-                let settins = UIBarButtonItem(title: "Settings", style: .done, target: self, action: #selector(self.settignBtn))
-                self.navigationItem.setRightBarButton(settins, animated: true)
-               
-        */
+        self.navigationController?.navigationBar.topItem?.title = user.handle
         
+        if self.rootView == false {
+            let navController = self.navigationController!
+            let backArrow = UIImage.init(icon: .FAAngleLeft, size: CGSize(width: 40, height: 40))
+            let backBtn = UIBarButtonItem(image: backArrow, style: .done, target: self, action: #selector(self.backButton))
+            navController.navigationBar.topItem?.leftBarButtonItem = backBtn
+        }
         
-        
-        
-        self.checkUserType()
-        self.getProfileData(index: 0)
-        self.getFollowers()
-        self.getFolling()
+        DispatchQueue.global(qos: .userInteractive).async {
+            self.getFollowers()
+            self.getFolling()
+        }
+
     }
     
-    @objc private func settignBtn() {
-        
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
     }
     
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+    }
+    
+    //==============================================================
+    //  Mark: End UIViewController Defaults Functions
+    //==============================================================
+    
+    //==============================================================
+    //  Mark: Visual Object Constrains
+    //==============================================================
     private func addviews() {
         self.view.addSubview(self.tableview)
         
@@ -84,15 +120,48 @@ class ProfileTab: UIViewController {
         
     }
     
+    //==============================================================
+    //  Mark: End Visual Objects Constrains
+    //==============================================================
+    
     private func checkUserType() {
         guard let user = self.userObject else {return}
         if user == PFUser.current() {
             self.tableHeader.followBtn.isHidden = true
-        
+        } else {
+            self.tableHeader.Setting.isHidden = true
         }
     }
-    //Mark: Get Profile Data =======================================================================
-    //==============================================================================================
+    
+    
+    @objc private func setting() {
+        
+        let alertSheet = UIAlertController(title: "Settings", message: "options", preferredStyle: .actionSheet)
+        let logout = UIAlertAction(title: "Log out", style: .default) { (alert) in
+            self.unsubcribeToChannell()
+            PFUser.logOutInBackground(block: { (error) in
+                FBSDKLoginManager().logOut()
+                GIDSignIn.sharedInstance().signOut()
+                let presenatationView = UINavigationController(rootViewController: SplashAnimation()) 
+                presenatationView.modalTransitionStyle = .coverVertical
+                self.present(presenatationView, animated: true, completion: nil)
+            })
+        }
+        let editProfile = UIAlertAction(title: "Settings", style: .default) { (alert) in
+            self.navigationController?.pushViewController(Settings(), animated: true)
+        }
+        let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        alertSheet.addAction(logout)
+        alertSheet.addAction(editProfile)
+        alertSheet.addAction(cancel)
+        self.present(alertSheet, animated: true, completion: nil)
+    }
+    
+    
+    
+    //==============================================================
+    //  Mark: Profile Data
+    //==============================================================
     private func getProfileData(index: Int) {
         guard let currentUser = self.userObject else {return}
         switch index {
@@ -105,43 +174,37 @@ class ProfileTab: UIViewController {
         }
     }
     
+    
+    //==============================================================
+    //  Mark: Videos and Challenges
+    //==============================================================
     private func videos(user: PFObject) {
         self.currentData.removeAll(keepingCapacity: false)
-        let videosQuery = PFQuery(className: "Videos")
-        videosQuery.whereKey("User", equalTo: user)
-        videosQuery.findObjectsInBackground(block: {
-            (result, error) in
-            if error == nil {
-                guard let videos = result else {return}
-                self.currentData["videos"] = videos
-                self.currentTab = "videos"
-                DispatchQueue.main.async {
-                    self.tableview.reloadSections(IndexSet(integer: 1), with: .automatic)
-                }
-            } else {
-                self.simpleAlert(Message: "Check your Interneter Connection", title: "Error")
-            }
-        })
-    }
-    
-    private func challenges(user: PFObject) {
-        self.currentData.removeAll(keepingCapacity: false)
-        let challengeQuery = PFQuery(className: "Challenges")
-        challengeQuery.whereKey("User", equalTo: user)
-        challengeQuery.findObjectsInBackground { (result, error) in
-            if error == nil {
-                guard let challenges = result else {return}
-                self.currentData["challenges"] = challenges
-                self.currentTab = "challenges"
-                DispatchQueue.main.async {
-                    //self.tableview.reloadData()
-                    self.tableview.reloadSections(IndexSet(integer: 1), with: .fade)
-                }
-            } else {
-                self.simpleAlert(Message: "Check your Interneter Connection", title: "Error")
+        self.functions.videos(user: user) {
+            (result) in
+            guard let videos = result as? [PFObject] else {return}
+            self.currentData["videos"] = videos
+            self.currentTab = "videos"
+            DispatchQueue.main.async {
+                self.tableview.reloadSections(IndexSet(integer: 1), with: .automatic)
             }
         }
     }
+    
+    private func challenges(user: PFObject) {
+        self.functions.challenges(user: user) { (result) in
+            guard let challenges = result as? [PFObject] else {return}
+            self.currentData["challenges"] = challenges
+            self.currentTab = "challenges"
+            DispatchQueue.main.async {
+                self.tableview.reloadSections(IndexSet(integer: 1), with: .fade)
+            }
+        }
+    }
+    
+    //==============================================================
+    //  Mark: Videos and Challenges
+    //==============================================================
     
     private func getFollowers() {
         guard let user = self.userObject else {return}
@@ -151,7 +214,6 @@ class ProfileTab: UIViewController {
         query.findObjectsInBackground { (result, error) in
             if error == nil {
                 guard let follers = result else {return}
-                
                 guard let currentUser = PFUser.current() else {return}
                 let back = follers.map({ (object) -> String in
                     guard let data = object["Followers"] as? PFObject else {return String()}
@@ -237,8 +299,40 @@ class ProfileTab: UIViewController {
         follow.userObject = user
         self.navigationController?.pushViewController(follow, animated: true)
     }
-    //==============================================================================================
-    //==============================================================================================
+    
+    func checkChallegeData(challengeId: String) {
+        PFCloud.callFunction(inBackground: "bestvideosForChallenge", withParameters: ["challengeId": challengeId]) {
+            (result, error) in
+            if error == nil {
+                guard let array = result as? [PFObject] else {return}
+                if array.count == 0 {
+                    let emptyChallenge = EmptyChallenge()
+                    emptyChallenge.objectData = challengeId
+                    self.present(emptyChallenge, animated: true, completion: nil)
+                } else {
+                    let challengepage = ChallengeTab()
+                    challengepage.PFObjectData = challengeId
+                    self.navigationController?.pushViewController(challengepage, animated: true)
+                }
+            }
+        }
+    }
+    
+    @objc private func backButton() {
+        self.navigationController?.popViewController(animated: true)
+    }
+    
+    private func unsubcribeToChannell() {
+        PFPush.unsubscribeFromChannel(inBackground: (PFUser.current()?.objectId!)!) { (success, error) in
+            
+        }
+
+    }
+    //==============================================================
+    //  Mark: End UIViewController Defaults Functions
+    //==============================================================
+    
+    
 }
 
 extension ProfileTab: SegmentDelegate {
@@ -261,10 +355,11 @@ extension ProfileTab: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         
         if section == 0 {
-            
+            let rocketIcon = UIImage(named: "transport")
+            let playIcon = UIImage(named: "play")
             let videoImage = UIImage.init(icon: .FAYoutubePlay, size: CGSize(width: 40, height: 40))
             let listicon   = UIImage.init(icon: .FAPlusCircle, size: CGSize(width: 40, height: 40))
-            let images     = [videoImage, listicon]
+            let images     = [playIcon!, rocketIcon!]
             guard let user = userObject else {return UIView()}
            
             guard let file = user["profilePicture"] as? PFFile else {return UIView()}
@@ -274,8 +369,7 @@ extension ProfileTab: UITableViewDelegate, UITableViewDataSource {
             self.tableHeader.segmented.ImagesArray = images
             self.tableHeader.username.text = "" //keep empty username label
             self.tableHeader.userimage.sd_setImage(with: url)
-            
-            
+            self.tableHeader.Setting.addTarget(self, action: #selector(self.setting), for: .touchUpInside)
             
             return self.tableHeader
         } else {
@@ -314,9 +408,7 @@ extension ProfileTab: UITableViewDelegate, UITableViewDataSource {
                     return UITableViewCell()
                 }
                 
-                videoCell.Footer.ArrowBtn.isHidden = true
-                videoCell.Footer.ChallengeText.isHidden = true
-                videoCell.Footer.rewardBtn.isHidden = true
+        
                 videoCell.Header.challengeSponsor.isHidden = true
                 
                 //Header Data
@@ -331,12 +423,11 @@ extension ProfileTab: UITableViewDelegate, UITableViewDataSource {
                         videoCell.Header.profileImage.sd_setImage(with: url, completed: nil)
                         //End profile picture
                         //username
-                        guard let username = userData["username"] as? String else {return}
-                        videoCell.Header.profileBotton.button.setTitle(" \(username.getTextFromEmail())", for: .normal)
+                        videoCell.Header.profileBotton.button.setTitle(" \(userData.handle)", for: .normal)
                         //End username
-                        
                     }
                 })
+                
                 
                 //End Header Data
                 
@@ -384,18 +475,18 @@ extension ProfileTab: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        print(self.currentTab)
         if self.currentTab == "videos" {
             guard let currentTabData = self.currentData["videos"] else  {return}
             let videoplayer = VideoPlayer()
             videoplayer.videdata = currentTabData[indexPath.row]
+            print(currentTabData[indexPath.row])
             self.navigationController?.pushViewController(videoplayer, animated: true)
         } else if self.currentTab == "challenges" {
             guard let currentTabData = self.currentData["challenges"] else  {return}
             let row = currentTabData[indexPath.row]
             guard let id = row.objectId else {return}
-            let challengePage = ChallengeTab()
-            challengePage.PFObjectData = id
-            self.navigationController?.pushViewController(challengePage, animated: true)
+            self.checkChallegeData(challengeId: id)
         }
     }
 }

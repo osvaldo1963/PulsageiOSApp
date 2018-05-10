@@ -5,7 +5,8 @@ import SDWebImage
 //In this view there is a Euraka library this library will be use temporlily
 class EditProfile: UIViewController, UITextFieldDelegate {
     
-    fileprivate var imageholder = UIImage()
+    fileprivate var imageholder = ""
+    private let imagePicker = UIImagePickerController()
     fileprivate lazy var activityIndicator: UIActivityIndicatorView = {
         let indicator = UIActivityIndicatorView()
         indicator.activityIndicatorViewStyle = .gray
@@ -88,16 +89,22 @@ class EditProfile: UIViewController, UITextFieldDelegate {
         self.scrollView.addSubview(self.InputLName)
         self.scrollView.addSubview(self.InputEmail)
         
+        self.imagePicker.delegate = self
+        
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(notification:)), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(notification:)), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
+        
         DispatchQueue.main.async {
             self.LoadData()
         }
+        
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done", style: .done, target: self, action: #selector(DoneBtnAction))
+        
+        
     }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
@@ -149,61 +156,58 @@ class EditProfile: UIViewController, UITextFieldDelegate {
     //Mark: Done Action Functions ===============================
     @objc fileprivate func DoneBtnAction() {
         self.activityIndicator.startAnimating()
-        if let imageData = UIImagePNGRepresentation(self.imageholder) {
-            let imagefile = PFFile(name: "profileImage.png", data: imageData)
-            imagefile?.saveInBackground(block: { (finish, error) in
-                if error == nil {
-                    if finish {
-                        self.SetUserData(imageFile: imagefile)
-                    }
-                }
-            })
-        } else {
-            self.activityIndicator.stopAnimating()
-            self.navigationController?.popViewController(animated: true)
-        }
-    }
-    
-    fileprivate func SetUserData(imageFile: PFFile?) {
-        let FirstName = self.InputFName.InputField.text
-        let LastName = self.InputLName.InputField.text
-        let Email = self.InputEmail.InputField.text
+        guard let firstName = self.InputFName.InputField.text else {return}
+        guard let lastName = self.InputLName.InputField.text else {return}
+        guard let email = self.InputEmail.InputField.text else {return}
         guard let currentUserId = PFUser.current()?.objectId else {return}
         
         let Update = PFUser.query()
-        Update?.getObjectInBackground(withId: currentUserId, block: { (objects, error) in
+        Update?.whereKey("objectId", equalTo: currentUserId)
+        Update?.getFirstObjectInBackground(block: { (user, error) in
             if error == nil {
+                guard let userObject = user else {return }
+                if self.imageholder.isEmpty {
                 
-                guard let object = objects else {return}
-                if let image = imageFile, let name = FirstName, let lastname = LastName {
-                    object["profilePicture"] = image
-                    object["name"] = name
-                    object["lastname"] = lastname
-                } else {
-                    object["name"] = ""
-                    object["lastname"] = ""
-                }
-                
-                if Email == nil {
-                    self.simpleAlert(Message: "Fields Error", title: "Email Can't be Empty")
-                } else {
-                    object["email"] = Email
-                    object["username"] = Email
-                    object.saveInBackground(block: { (success, err) in
-                        if err == nil {
+                    userObject["name"] = firstName
+                    userObject["lastname"] = lastName
+                    userObject["email"] = email
+                    userObject.saveInBackground(block: { (success, error) in
+                        if error == nil {
                             if success {
-                                self.activityIndicator.stopAnimating()
                                 self.navigationController?.popViewController(animated: true)
-                            } else {
-                                self.simpleAlert(Message: "Profile Update Error", title: "There is a problem while upating your information")
                             }
                         }
                     })
+                    
+                } else {
+                    
+                    
+                    
+                    let imageurl = URL(string: self.imageholder)
+                    let imageData = try? Data(contentsOf: imageurl!)
+                    let uploadPicture = PFFile(name: "image.png", data: imageData!)
+                    uploadPicture?.saveInBackground({ (success, error) in
+                        userObject["profilePicture"] = uploadPicture
+                        userObject["name"] = firstName
+                        userObject["lastname"] = lastName
+                        userObject.saveInBackground(block: { (success, error) in
+                            if error == nil {
+                                if success {
+                                    self.navigationController?.popViewController(animated: true)
+                                }
+                            }
+                        })
+                    }, progressBlock: { (progress) in
+                        
+                    })
                 }
-        
+                
             }
         })
+        self.activityIndicator.stopAnimating()
+        self.navigationController?.popViewController(animated: true)
     }
+
     //end Mark ========================================================
     
     
@@ -225,20 +229,16 @@ class EditProfile: UIViewController, UITextFieldDelegate {
     
     @objc fileprivate func ChoosePictureFrom() {
         if UIImagePickerController.isSourceTypeAvailable(.camera) {
-            let imagePicker = UIImagePickerController()
-            imagePicker.delegate = self
-            imagePicker.sourceType = .camera
-            imagePicker.allowsEditing = true
+            self.imagePicker.sourceType = .camera
+            self.imagePicker.allowsEditing = true
             self.present(imagePicker, animated: true, completion: nil)
         }
     }
     
     @objc fileprivate func ChooseFromLibrary() {
-        if UIImagePickerController.isSourceTypeAvailable(.camera) {
-            let imagePicker = UIImagePickerController()
-            imagePicker.delegate = self
-            imagePicker.sourceType = .photoLibrary
-            imagePicker.allowsEditing = true
+        if UIImagePickerController.isSourceTypeAvailable(.photoLibrary) {
+            self.imagePicker.sourceType = .photoLibrary
+            self.imagePicker.allowsEditing = true
             self.present(imagePicker, animated: true, completion: nil)
         }
     }
@@ -247,14 +247,14 @@ class EditProfile: UIViewController, UITextFieldDelegate {
 
 extension EditProfile: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
-        //guard let image = info[UIImagePickerControllerOriginalImage] as? UIImage else {return}
-        guard let editedImage = info[UIImagePickerControllerEditedImage] as? UIImage else {return}
-        
-        self.imageholder = editedImage
+        let pickedImage = info[UIImagePickerControllerOriginalImage] as? UIImage
         DispatchQueue.main.async {
-            self.profilePicture.image = editedImage
+            //self.profilePicture.image =  selectedImage
         }
-        
+        self.dismiss(animated: true, completion: nil)
+    }
+    
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
         self.dismiss(animated: true, completion: nil)
     }
 

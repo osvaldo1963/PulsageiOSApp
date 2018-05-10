@@ -6,13 +6,14 @@ class sectionHeader: UIView {
     
     public lazy var profileImage: UIImageView = {
         let imageview = UIImageView()
-        imageview.backgroundColor = .lightGray
+        imageview.backgroundColor = .white
         imageview.layer.cornerRadius = 25
         imageview.contentMode = .scaleToFill
         imageview.layer.borderColor = UIColor.white.cgColor
         imageview.layer.borderWidth = 1
         imageview.clipsToBounds = true
         imageview.isUserInteractionEnabled = true
+        imageview.translatesAutoresizingMaskIntoConstraints = false
         return imageview
     }()
     
@@ -22,6 +23,7 @@ class sectionHeader: UIView {
         btn.button.setTitle(" osvaldo", for: .normal)
         btn.button.setTitleColor(.black, for: .normal)
         btn.button.titleLabel?.font = UIFont.systemFont(ofSize: 14)
+        btn.translatesAutoresizingMaskIntoConstraints = false
         return btn
     }()
     
@@ -30,6 +32,8 @@ class sectionHeader: UIView {
         label.textColor = .black
         label.font = UIFont.systemFont(ofSize: 10)
         label.text = "Sponsored Challenge"
+        label.textAlignment = .right
+        label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
@@ -41,6 +45,7 @@ class sectionHeader: UIView {
         btn.button.titleLabel?.font = UIFont.systemFont(ofSize: 14)
         btn.button.setTitleColor(.black, for: .normal)
         btn.button.isHidden = true // when instagram link is wokring
+        btn.translatesAutoresizingMaskIntoConstraints = false
         return btn
     }()
     
@@ -57,17 +62,28 @@ class sectionHeader: UIView {
         self.backgroundColor = .white
         
         self.addSubview(self.profileImage)
-        self.profileImage.frame = CGRect(x: 20, y: frame.size.height / 2 - 25, width: 50, height: 50)
+        self.profileImage.topAnchor.constraint(equalTo: self.topAnchor,constant: 10).isActive = true
+        self.profileImage.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 10).isActive = true
+        self.profileImage.heightAnchor.constraint(equalToConstant: 50).isActive = true
+        self.profileImage.widthAnchor.constraint(equalToConstant: 50).isActive = true
         
         self.addSubview(self.profileBotton)
-        self.profileBotton.frame = CGRect(x: 80, y: frame.size.height / 2 - 25, width: frame.size.width / 2, height: 20)
+        self.profileBotton.topAnchor.constraint(equalTo: self.topAnchor, constant: 10).isActive = true
+        self.profileBotton.leftAnchor.constraint(equalTo: self.profileImage.rightAnchor, constant: 10).isActive = true
+        self.profileBotton.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -10).isActive = true
+        self.profileBotton.heightAnchor.constraint(equalToConstant: 20).isActive = true
 
         self.addSubview(self.instagramBotton)
-        self.instagramBotton.frame = CGRect(x: 80, y: frame.size.height / 2 + 5, width: 100, height: 20)
-       
+        self.instagramBotton.topAnchor.constraint(equalTo: self.profileBotton.bottomAnchor, constant: 10).isActive = true
+        self.instagramBotton.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 10)
+        self.instagramBotton.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -10).isActive = true
+        self.instagramBotton.heightAnchor.constraint(equalToConstant: 20).isActive = true
         
         self.addSubview(self.challengeSponsor)
-        self.challengeSponsor.frame = CGRect(x: 10, y: frame.size.height - 12, width: frame.size.width / 2, height: 10)
+        self.challengeSponsor.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -15).isActive = true
+        self.challengeSponsor.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -10).isActive = true
+        self.challengeSponsor.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 10).isActive = true
+        self.challengeSponsor.heightAnchor.constraint(equalToConstant: 15).isActive = true
         
     }
 }

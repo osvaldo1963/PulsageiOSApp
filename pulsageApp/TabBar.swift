@@ -8,38 +8,97 @@ import AVFoundation
 class TabBar: UITabBarController, UITabBarControllerDelegate {
     
     //Mark: Menu and feedback Controllers
-    fileprivate let menuController = MenuController()
-    fileprivate let feedbackController = FeedbackController()
-   
+    private let feedbackController = FeedbackController()
     
     //Mark: initial view functions =================================
     override func viewDidLoad() {
         super.viewDidLoad()
         self.delegate = self
         self.setTabBar()
-        self.menuController.delegate = self
         self.feedbackController.delegate = self
         self.navigationItem.hidesBackButton = true
         self.tabBarController?.tabBar.translatesAutoresizingMaskIntoConstraints = false
+        
+        DispatchQueue.global(qos: .userInteractive).async {
+            self.subcribeUserForPushNofification()
+        }
+        
+        /*
+        guard let currentuser = PFUser.current()?.objectId else {return }
+        
+        PFCloud.callFunction(inBackground: "sendpush", withParameters: ["id": "global", "message": "\(Date().description)", "sender": currentuser]) { (result, error) in
+            print("result \(result)")
+            print("error \(error)")
+            
+        }
+        */
+        
+        self.setupMiddleButton(hidden: false)
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(true)
-       
-        self.setNavbarProp()
-        //UITabBarItem.appearance().setTitleTextAttributes([NSAttributedStringKey.foregroundColor: UIColor.green], for: .normal)
     }
     
-    override func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
+    //============================================================
+    // Mark: Notification Register Functions
+    //============================================================
+    
+    private func subcribeUserForPushNofification() {
+        let token = UserDefaults.standard
+        guard let deviceToken = token.object(forKey: "deviceToken") as? Data else {return}
+        guard let userid = PFUser.current()?.objectId else {return}
         
-        //item.setTitleTextAttributes([], for: .normal)
+        let install = PFInstallation.current()
+        install?.setDeviceTokenFrom(deviceToken)
+        install?["channels"] = ["\(userid)", "global"]
+        install?.saveInBackground { (success, error) in
+            if error != nil {
+                self.simpleAlert(Message: "Nofication Device Problem", title: "Device Registration")
+            } else {
+                self.checkUserInChannel(user: PFUser.current()!)
+            }
+        }
+        
+        PFPush.subscribeToChannel(inBackground: userid) { (success, error) in
+            if error != nil {
+                print(error.debugDescription)
+                self.simpleAlert(Message: "Notifications Channel Problem", title: "Error")
+            }
+        }
     }
+    
+    private func checkUserInChannel(user: PFUser) {
+        let query = PFQuery(className: "ChannelsPerUser")
+        query.whereKey("User", equalTo: user)
+        query.getFirstObjectInBackground { (result, error) in
+            if error != nil {
+                self.registerUserForChannel(user: user)
+            }
+        }
+    }
+    
+    private func registerUserForChannel(user: PFUser) {
+        guard let id = user.objectId else {return}
+        let inserData = PFObject(className: "ChannelsPerUser")
+        inserData["User"] = user
+        inserData["userId"] = "\(id)"
+        inserData["channels"] = ["global", id]
+        inserData.saveInBackground { (success, error) in
+            if error == nil {
+                if !success {
+                    self.simpleAlert(Message: "Check Connectivity", title: "Registering Device Problems")
+                }
+            }
+        }
+    }
+    
+    //============================================================
+    // Mark: End Notification Register Functions
+    //============================================================
     
     override func viewWillLayoutSubviews() {
-        
         self.navigationController?.navigationBar.isHidden = false
-        
-    
         self.tabBarController?.tabBar.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
         self.tabBarController?.tabBar.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor).isActive = true
         self.tabBarController?.tabBar.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor).isActive = true
@@ -49,12 +108,8 @@ class TabBar: UITabBarController, UITabBarControllerDelegate {
         tabBar.frame = newTabBarFrame
         tabBar.tintColor = UIColor(red:0.88, green:0.37, blue:0.37, alpha: 1.0)
         tabBar.barTintColor = .white
-        //tabBarItem.setTitleTextAttributes([NSAttributedStringKey.foregroundColor: UIColor.green], for: .normal)
         tabBar.unselectedItemTintColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.8)
-        
-        
         tabBarItem.titleTextAttributes(for: .normal)
-        
     }
     
     override func setViewControllers(_ viewControllers: [UIViewController]?, animated: Bool) {
@@ -64,30 +119,31 @@ class TabBar: UITabBarController, UITabBarControllerDelegate {
         for controller in array {
             controller.tabBarItem.imageInsets = UIEdgeInsetsMake(5, 0, -5, 0)
         }
-        
     }
     
     //=====================================================================================
     
     //Mark: tab bar navigation bar props
     fileprivate func setTabBar() {
-        let home        = Home()
+        let home        = UINavigationController(rootViewController: Home())
         let HomeIcon    = UIImage(named: "HomeIcon.png")
         let hometabitem = UITabBarItem(title: nil, image: HomeIcon, tag: 1)
         
-        let searchr       = search()
+        let searchr       = UINavigationController(rootViewController: search())
         let SearchIcon    = UIImage(named: "SearchIcon.png")
         let searchtabitem = UITabBarItem(title: nil, image: SearchIcon, tag: 2)
 
-        let posts       = PostTab()
+        let posts       = UINavigationController(rootViewController: PostTab())
         let posticon    = UIImage.init(icon: .FAPlusSquareO, size: CGSize(width: 42, height: 42))
         let posttabitem = UITabBarItem(title: nil, image: posticon, tag: 3)
         
-        let noti        = notifications()
+        let noti        = UINavigationController(rootViewController: notifications())
         let NotificationIcon = UIImage(named: "NotificationIcon.png")
         let notitabitem = UITabBarItem(title: nil, image: NotificationIcon, tag: 4)
         
-        let pro        = ProfileTab()
+        let profiletab = ProfileTab()
+        profiletab.rootView = true
+        let pro        =  UINavigationController(rootViewController: profiletab)
         let ProfileIcon = UIImage(named: "ProfileIcon.png")
         let protabitem = UITabBarItem(title: nil, image: ProfileIcon, tag: 5)
         
@@ -98,80 +154,11 @@ class TabBar: UITabBarController, UITabBarControllerDelegate {
         pro.tabBarItem     = protabitem
         self.viewControllers = [home, searchr, posts, noti, pro]
     }
-    //===========================================================================
-    
-    //Mark: Navigation bar props and functions ==================================
-    fileprivate func setNavbarProp() {
-        let videoIcon      = UIImage.init(icon: .FAVideoCamera, size: CGSize(width: 25, height: 30))
-        let videoCameraBtn = UIBarButtonItem(image: videoIcon, style: .plain, target: self, action: #selector(cameraFunction))
-        let menuIcon       = UIImage.init(icon: .FAEllipsisH, size: CGSize(width: 25, height: 30))
-        let menuBtn        = UIBarButtonItem(image: menuIcon, style: .plain, target: self, action: #selector(Menu))
-        
-        //self.navigationItem.setRightBarButtonItems([menuBtn ], animated: true)
-        
-        let feedbackBtn = UIBarButtonItem(title: "Feedback", style: .done, target: self, action: #selector(presetFeebBackController))
-        feedbackBtn.setTitleTextAttributes([NSAttributedStringKey.font: UIFont(name: "HelveticaNeue-Light", size: 16)!], for: .normal)
-        self.navigationItem.setLeftBarButtonItems([feedbackBtn], animated: true)
-        
-        
-        let attributes = [NSAttributedStringKey.font: UIFont(name: "HelveticaNeue", size: 20)!, NSAttributedStringKey.foregroundColor: UIColor.white]
-        self.navigationController?.navigationBar.titleTextAttributes = attributes
-        
-    }
-    // Mark: present Camera view controller
-    @objc fileprivate func cameraFunction() {
-        if PFUser.current() != nil {
-            self.navigationController?.pushViewController(CameraRecorded(), animated: true)
-        } else {
-            let presenationViewcontroller = UINavigationController(rootViewController: Presentation())
-            self.present(presenationViewcontroller, animated: true, completion: nil)
-        }
-    }
-    
-    @objc fileprivate func presetFeebBackController() {
-        self.feedbackController.presetFeebBackController()
-    }
-    
-    @objc fileprivate func Menu() {
-        self.menuController.PresentMenu()
-    }
-    
-    @objc fileprivate func presentLoginController() {
-        self.view.endEditing(true)
-        let loginview = UINavigationController(rootViewController: Presentation())
-        self.present(loginview, animated: true, completion: nil)
-    }
+ 
     
     //===========================================================================
-    
-    
 }
 
-//Mark: This delegate data is the result of the button pressed
-extension TabBar: MenuDeledate {
-    func buttonPressed(buttonPre: String) {
-        switch buttonPre {
-        case "challenge":
-            self.selectedIndex = 2
-        case "feedback":
-            self.presetFeebBackController()
-        case "settings":
-            let settingsview = Settings()
-            self.navigationController?.pushViewController(settingsview, animated: true)
-        case "session":
-            if PFUser.current() != nil {
-                PFUser.logOut()
-                FBSDKLoginManager().logOut()
-                self.selectedIndex = 0
-            } else {
-               self.presentLoginController()
-            }
-        default:
-            break
-        }
-    }
-}
-//End Mark
 
 //Mark: This delegate is the result of the text typed
 extension TabBar: FeedBackDelegate {

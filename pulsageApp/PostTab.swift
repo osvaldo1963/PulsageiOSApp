@@ -1,6 +1,6 @@
 import UIKit
 
-class PostTab: UIViewController {
+class PostTab: PulsageViewController {
     
     //Mark: fileprivate variable
     fileprivate var titleForRow = ["", ""]
@@ -56,11 +56,12 @@ class PostTab: UIViewController {
     
     private func loadImages() {
         
-        self.thumbnailForRow.removeAll()
-        self.titleForRow.removeAll()
+        self.thumbnailForRow.removeAll(keepingCapacity: false)
+        self.titleForRow.removeAll(keepingCapacity: false)
         DispatchQueue.main.async {
             self.tableview.reloadData()
         }
+    
         self.thumbnailForRow = [UIImage(named: "postFirst")!, UIImage(named: "postSecond")!]
         self.titleForRow = ["Create a Challenge", "Record a Video"]
         
