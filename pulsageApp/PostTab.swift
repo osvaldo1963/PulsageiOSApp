@@ -19,8 +19,7 @@ class PostTab: PulsageViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-       
-        DispatchQueue.global(qos: .userInteractive).async {
+        DispatchQueue.main.async {
             self.loadImages()
         }
         
@@ -58,16 +57,16 @@ class PostTab: PulsageViewController {
         
         self.thumbnailForRow.removeAll(keepingCapacity: false)
         self.titleForRow.removeAll(keepingCapacity: false)
-        DispatchQueue.main.async {
-            self.tableview.reloadData()
-        }
+        
+        self.tableview.reloadData()
+        
     
         self.thumbnailForRow = [UIImage(named: "postFirst")!, UIImage(named: "postSecond")!]
         self.titleForRow = ["Create a Challenge", "Record a Video"]
         
-        DispatchQueue.main.async {
-            self.tableview.reloadData()
-        }
+        
+        self.tableview.reloadData()
+        
        
     }
 }
@@ -97,7 +96,7 @@ extension PostTab: UITableViewDelegate, UITableViewDataSource {
         case 1:
             
             let controller = UIAlertController(title: "Video Source", message: "Choose Video From Camera or Library", preferredStyle: .actionSheet)
-            
+
             let camera = UIAlertAction(title: "Camera", style: .default, handler: { (alert) in
                 let cameraController = CameraRecorded()
                 let rootNavigationController = UINavigationController(rootViewController: cameraController)
@@ -105,7 +104,6 @@ extension PostTab: UITableViewDelegate, UITableViewDataSource {
                 self.present(rootNavigationController, animated: true, completion: nil)
             })
             let library = UIAlertAction(title: "Library", style: .default, handler: { (alert) in
-                
                 self.present(self.imagepickerController, animated: true, completion: nil)
             })
             let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
@@ -113,6 +111,13 @@ extension PostTab: UITableViewDelegate, UITableViewDataSource {
             controller.addAction(library)
             controller.addAction(cancel)
             controller.modalTransitionStyle = .crossDissolve
+            
+            if let popoverController = controller.popoverPresentationController {
+                popoverController.sourceView = self.view
+                popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+                popoverController.permittedArrowDirections = []
+            }
+            
             self.present(controller, animated: true, completion: nil)
             
         default:
@@ -132,8 +137,6 @@ extension PostTab: UIImagePickerControllerDelegate, UINavigationControllerDelega
         let rootNavigation = UINavigationController(rootViewController: video)
         rootNavigation.gradientBackground()
         self.present(rootNavigation, animated: true, completion: nil)
-       
     }
-    
 }
 

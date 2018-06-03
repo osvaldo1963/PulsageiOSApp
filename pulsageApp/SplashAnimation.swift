@@ -2,7 +2,6 @@ import UIKit
 import Parse
 
 class SplashAnimation: UIViewController {
-    
     fileprivate lazy var splash: UIView = {
         let vs = SplashScreen(frame: self.view.bounds)
         return vs
@@ -25,7 +24,6 @@ class SplashAnimation: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        
         self.navigationController?.gradientBackground()
         self.navigationController?.navigationBar.isHidden = true
        
@@ -48,4 +46,5 @@ class SplashAnimation: UIViewController {
         super.viewWillAppear(animated)
         self.navigationController?.navigationBar.isHidden = true
     }
+    
 }

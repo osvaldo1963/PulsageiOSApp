@@ -198,9 +198,8 @@ class HomePageHeaderPage: UIViewController {
     //=============================================
     
     private func setViedeoPlayer() {
-        guard let videoFile = self.videosArray[self.correntIndex]["video"] as? PFFile else {return}
-        guard let videoUrl = videoFile.url else {return}
-        guard let url = URL(string: videoUrl) else {return}
+        guard let videoFile = self.videosArray[self.correntIndex]["videourl"] as? String else {return}
+        guard let url = URL(string: videoFile) else {return}
         self.player = AVPlayer(url: url)
         self.playerLayer  = AVPlayerLayer(player: self.player)
         self.playerLayer.frame = self.view.bounds

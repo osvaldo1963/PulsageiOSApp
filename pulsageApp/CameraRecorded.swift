@@ -1,7 +1,9 @@
 import UIKit
-
+import Parse
 
 class CameraRecorded: SwiftyCamViewController {
+    
+    public var challenge: String?
     //Mark: class Propeties
     //var videoDelegate : videoRecordedDelegate?
     
@@ -11,16 +13,6 @@ class CameraRecorded: SwiftyCamViewController {
     //================================
     
     //Mark: filaprivate visual objects
-    private lazy var closeBtn: UIButton = {
-        let button = UIButton()
-        button.setFAIcon(icon: .FAAngleDown , iconSize: 30, forState: .normal)
-        button.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.8)
-        button.setTitleColor(.white, for: .normal)
-        button.contentHorizontalAlignment = .center
-        button.addTarget(self, action: #selector(dismissView), for: .touchUpInside)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
     
     fileprivate lazy var starRecordingBtn: UIButton = {
         let btn = UIButton()
@@ -55,12 +47,12 @@ class CameraRecorded: SwiftyCamViewController {
         self.SetViewsObjects()
         self.timeCount = 0
         self.time.text = "00:00"
-        self.navigationController?.navigationBar.isHidden = true
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        self.navigationController?.navigationBar.isHidden = true
+        
+        self.navigationProps()
         /*
         guard let picked = self.pickedVideo else {return}
         
@@ -88,20 +80,14 @@ class CameraRecorded: SwiftyCamViewController {
     //Mark: fileprivate functions
     fileprivate func SetViewsObjects() {
         
-        self.videoQuality = .resolution1920x1080
+        self.videoQuality = .iframe1280x720
         self.defaultCamera = .rear
         self.shouldUseDeviceOrientation = true
         self.maxZoomScale = 4.0
         self.tapToFocus = false
         self.doubleTapCameraSwitch = false
-        self.maximumVideoDuration = 30
+        self.maximumVideoDuration = 600
         self.cameraDelegate = self
-    
-        self.view.addSubview(self.closeBtn)
-        self.closeBtn.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
-        self.closeBtn.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor).isActive = true
-        self.closeBtn.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor).isActive = true
-        self.closeBtn.heightAnchor.constraint(equalToConstant: 50).isActive = true
         
         self.view.addSubview(self.starRecordingBtn)
         self.view.addSubview(self.time)
@@ -114,12 +100,11 @@ class CameraRecorded: SwiftyCamViewController {
     }
     
     fileprivate func timeString(time:TimeInterval) -> String {
+        
+        let minutes = Int(time) / 60 % 60
         let seconds = Int(time) % 60
-        if seconds > 9 {
-            return "00:\(seconds)"
-        } else {
-            return "00:0\(seconds)"
-        }
+        return String(format: "%02i:%02i", minutes, seconds)
+        
     }
     
     //Mark: @objc functions
@@ -144,10 +129,11 @@ class CameraRecorded: SwiftyCamViewController {
     }
     
     @objc fileprivate func timebegan() {
-        
         self.timeCount += 1
-        self.time.text = self.timeString(time: TimeInterval(self.timeCount))
-        if self.timeCount == 50 {
+        DispatchQueue.main.async {
+            self.time.text = self.timeString(time: TimeInterval(self.timeCount))
+        }
+        if self.timeCount == 600 {
             self.timer.invalidate()
             self.record()
         }
@@ -157,15 +143,26 @@ class CameraRecorded: SwiftyCamViewController {
     @objc private func dismissView() {
         self.dismiss(animated: true, completion: nil)
     }
+    
+    private func navigationProps() {
+        self.navigationController?.navigationBar.isHidden = false
+        self.navigationController?.navigationBar.topItem?.title = "Camera"
+        let back = UIBarButtonItem(title: "back", style: .done, target: self, action: #selector(self.dismissView))
+        self.navigationItem.leftBarButtonItem = back
+    }
 }
 
 
 extension CameraRecorded: SwiftyCamViewControllerDelegate {
 
     internal func swiftyCam(_ swiftyCam: SwiftyCamViewController, didFinishProcessVideoAt url: URL) {
-        self.time.text = "00:00"
-        //push controller to videoData.swift
+        DispatchQueue.main.async {
+            self.time.text = "00:00"
+        }
         let videodata = videoData()
+        if let challengePicked = self.challenge {
+            videodata.challengeObject = PFObject(withoutDataWithClassName: "Challenges", objectId: challengePicked)
+        }
         videodata.videoUrl = url
         self.navigationController?.pushViewController(videodata, animated: true)
     }

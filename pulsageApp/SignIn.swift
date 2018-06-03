@@ -5,16 +5,8 @@ import FBSDKCoreKit
 import FBSDKLoginKit
 import GoogleSignIn
 
-class SignIn: UIViewController, GIDSignInDelegate, GIDSignInUIDelegate {
-    func sign(_ signIn: GIDSignIn!, didSignInFor user: GIDGoogleUser!, withError error: Error!) {
-        if let error = error {
-            print(error)
-        } else {
-            print(user.profile.email)
-            guard let email = user.profile.email else {return}
-            self.SigninAction(Email: email, Pass: email, fbAccount: false, googleAccount: true)
-        }
-    }
+class SignIn: UIViewController {
+    
     
     //===================================================================
     //============       Mark: Visual Objects      ======================
@@ -165,6 +157,8 @@ class SignIn: UIViewController, GIDSignInDelegate, GIDSignInUIDelegate {
         ///
     }
     
+    
+    
     @objc fileprivate func BackButtonAction() {
         self.navigationController?.popViewController(animated: true)
     }
@@ -180,10 +174,8 @@ class SignIn: UIViewController, GIDSignInDelegate, GIDSignInUIDelegate {
     }
     
     @objc fileprivate func SigninAction(Email: String, Pass: String, fbAccount: Bool, googleAccount: Bool) {
-        
         var emailToLogin = ""
         var passToLogin = ""
-        
         if fbAccount {
             emailToLogin = Email
             passToLogin = Pass.sha512()
@@ -204,9 +196,6 @@ class SignIn: UIViewController, GIDSignInDelegate, GIDSignInUIDelegate {
                 self.simpleAlert(Message: "\(err) \n if you sign up using facebook you need to login using facebook", title: "Login Error")
             }
         }
- 
-        
-        
     }
     
     @objc fileprivate func forgotPasswordAction() {
@@ -259,6 +248,18 @@ class SignIn: UIViewController, GIDSignInDelegate, GIDSignInUIDelegate {
     }
     //===================================
     
+}
+
+extension SignIn: GIDSignInDelegate, GIDSignInUIDelegate {
+    func sign(_ signIn: GIDSignIn!, didSignInFor user: GIDGoogleUser!, withError error: Error!) {
+        if let error = error {
+            print(error)
+        } else {
+            print(user.profile.email)
+            guard let email = user.profile.email else {return}
+            self.SigninAction(Email: email, Pass: email, fbAccount: false, googleAccount: true)
+        }
+    }
 }
 
 extension SignIn {

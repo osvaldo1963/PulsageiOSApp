@@ -134,8 +134,7 @@ class ProfileTab: PulsageViewController {
     }
     
     
-    @objc private func setting() {
-        
+    @objc private func setting(sender: AnyObject) {
         let alertSheet = UIAlertController(title: "Settings", message: "options", preferredStyle: .actionSheet)
         let logout = UIAlertAction(title: "Log out", style: .default) { (alert) in
             self.unsubcribeToChannell()
@@ -154,6 +153,13 @@ class ProfileTab: PulsageViewController {
         alertSheet.addAction(logout)
         alertSheet.addAction(editProfile)
         alertSheet.addAction(cancel)
+        if let popoverController = alertSheet.popoverPresentationController {
+            popoverController.sourceView = self.view
+            popoverController.barButtonItem = sender as? UIBarButtonItem
+            popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+            popoverController.permittedArrowDirections = []
+            
+        }
         self.present(alertSheet, animated: true, completion: nil)
     }
     
@@ -224,9 +230,11 @@ class ProfileTab: PulsageViewController {
                 DispatchQueue.main.async {
                     self.tableHeader.followers.setTitle("\(follers.count) \n Followers", for: .normal)
                     if back.contains(currentUser.objectId!) {
+                        self.tableHeader.followBtn.isEnabled = true
                         self.tableHeader.followBtn.setTitle("Unfollow", for: .normal)
                         self.follow = true
                     } else {
+                        self.tableHeader.followBtn.isEnabled = true
                         self.tableHeader.followBtn.setTitle("Follow", for: .normal)
                         self.follow = false
                     }
@@ -244,6 +252,7 @@ class ProfileTab: PulsageViewController {
                 guard let follers = result else {return}
                 
                 DispatchQueue.main.async {
+                    self.tableHeader.following.isEnabled = true
                     self.tableHeader.following.setTitle("\(follers.count) \n Following", for: .normal)
                 }
                 
@@ -255,6 +264,7 @@ class ProfileTab: PulsageViewController {
         guard let currentUser = PFUser.current() else {return}
         guard let user = self.userObject else {return}
         if currentUser != user {
+            self.tableHeader.followBtn.isEnabled = false
             if follow {
                 let query = PFQuery(className: "Follow")
                 query.whereKey("Followers", equalTo: currentUser)
@@ -357,8 +367,6 @@ extension ProfileTab: UITableViewDelegate, UITableViewDataSource {
         if section == 0 {
             let rocketIcon = UIImage(named: "transport")
             let playIcon = UIImage(named: "play")
-            let videoImage = UIImage.init(icon: .FAYoutubePlay, size: CGSize(width: 40, height: 40))
-            let listicon   = UIImage.init(icon: .FAPlusCircle, size: CGSize(width: 40, height: 40))
             let images     = [playIcon!, rocketIcon!]
             guard let user = userObject else {return UIView()}
            
@@ -369,7 +377,7 @@ extension ProfileTab: UITableViewDelegate, UITableViewDataSource {
             self.tableHeader.segmented.ImagesArray = images
             self.tableHeader.username.text = "" //keep empty username label
             self.tableHeader.userimage.sd_setImage(with: url)
-            self.tableHeader.Setting.addTarget(self, action: #selector(self.setting), for: .touchUpInside)
+            self.tableHeader.Setting.addTarget(self, action: #selector(self.setting(sender:)), for: .touchUpInside)
             
             return self.tableHeader
         } else {

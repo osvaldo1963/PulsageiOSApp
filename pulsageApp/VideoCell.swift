@@ -1,4 +1,5 @@
 import UIKit
+import SDWebImage
 
 class VideoCell: UITableViewCell {
     
@@ -31,11 +32,7 @@ class VideoCell: UITableViewCell {
     
     override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        self.Thubnail.image = nil
-        self.Header.profileImage.image = nil
-        self.Header.profileBotton.button.setTitle(nil, for: .normal)
-        self.Footer.VideoDescription.text = nil
-        self.Footer.like.imageView?.image = nil
+        
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -44,8 +41,8 @@ class VideoCell: UITableViewCell {
     
     override func prepareForReuse() {
         super.prepareForReuse()
-        self.Thubnail.image = nil
-        self.Header.profileImage.image = nil
+        
+        self.Header.profileImage.sd_cancelCurrentImageLoad()
         self.Header.profileBotton.button.setTitle(nil, for: .normal)
         self.Footer.VideoDescription.text = nil
         self.Footer.like.imageView?.image = nil

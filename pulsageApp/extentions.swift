@@ -1,6 +1,7 @@
 import UIKit
 import Parse
 import Font_Awesome_Swift
+import Photos
 
 extension String {
     func getTextFromEmail() -> String{
@@ -249,19 +250,19 @@ public extension UIDevice {
         case "iPad5,1", "iPad5,2":                      return "iPad Mini 4"
         case "iPad6,7", "iPad6,8":                      return "iPad Pro"
         case "AppleTV5,3":                              return "Apple TV"
-        case "i386", "x86_64":                          return "Simulator"
+       
         default:                                        return identifier
         }
     }
 }
 
 extension UIImage {
-    func imageIsNullOrNot() -> Bool {
+    var isEmpty: Bool {
         let size = CGSize(width: 0, height: 0)
         if self.size.width == size.width {
-            return false
-        } else {
             return true
+        } else {
+            return false
         }
     }
 }
@@ -301,6 +302,25 @@ extension UITabBarController {
         self.selectedIndex = 2
     }
     
+}
+
+extension UIImage {
+    static func from(info: [String : Any]) -> UIImage? {
+        if let image = info[UIImagePickerControllerOriginalImage] as? UIImage {
+            return image
+        }
+        
+        var imageToBeReturned: UIImage?
+        if let url = info[UIImagePickerControllerPHAsset] as? URL, let asset = PHAsset.fetchAssets(withALAssetURLs: [url], options: nil).firstObject {
+            let manager = PHImageManager.default()
+            let option = PHImageRequestOptions()
+            option.isSynchronous = true
+            manager.requestImage(for: asset, targetSize: CGSize(width: 1000, height: 1000), contentMode: .aspectFit, options: option, resultHandler: {(image: UIImage?, info: [AnyHashable : Any]?) in
+                imageToBeReturned = image
+            })
+        }
+        return imageToBeReturned
+    }
 }
 
 

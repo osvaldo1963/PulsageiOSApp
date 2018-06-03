@@ -1,15 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
-    "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-    <dict>
-      <key>CLIENT_ID</key>
-      <string>123142531935-kteal54ptfom3m6oti9s9aob7arejk78.apps.googleusercontent.com</string>
-      <key>REVERSED_CLIENT_ID</key>
-      <string>com.googleusercontent.apps.123142531935-kteal54ptfom3m6oti9s9aob7arejk78</string>
-      <key>PLIST_VERSION</key>
-      <string>1</string>
-      <key>BUNDLE_ID</key>
-      <string>com.pulsage.Pulsage</string>
-    </dict>
-    </plist>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AD_UNIT_ID_FOR_BANNER_TEST</key>
+	<string>ca-app-pub-3940256099942544/2934735716</string>
+	<key>AD_UNIT_ID_FOR_INTERSTITIAL_TEST</key>
+	<string>ca-app-pub-3940256099942544/4411468910</string>
+	<key>CLIENT_ID</key>
+	<string>123142531935-2t3aj5ithu0ul2lk6d5l94reb1d9ra66.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.123142531935-2t3aj5ithu0ul2lk6d5l94reb1d9ra66</string>
+	<key>API_KEY</key>
+	<string>AIzaSyBaqcSE3waMN0wEImFgg7tr5asG8szC1Oc</string>
+	<key>GCM_SENDER_ID</key>
+	<string>123142531935</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.pulsage.Pulsage</string>
+	<key>PROJECT_ID</key>
+	<string>pulsage-1525053762219</string>
+	<key>STORAGE_BUCKET</key>
+	<string>pulsage-1525053762219.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<true></true>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:123142531935:ios:6d2b84cb404b4345</string>
+	<key>DATABASE_URL</key>
+	<string>https://pulsage-1525053762219.firebaseio.com</string>
+</dict>
+</plist>

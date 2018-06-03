@@ -60,7 +60,7 @@ class SignUp: UIViewController, GIDSignInDelegate, GIDSignInUIDelegate  {
     
     fileprivate lazy var handleInput: UITextField = {
         let textfield = UITextField()
-        textfield.placeholder = "Create Handle"
+        textfield.placeholder = "Create Username"
         textfield.setLeftPaddingPoints(6)
         textfield.keyboardType = .default
         textfield.autocorrectionType = .yes
@@ -266,7 +266,7 @@ class SignUp: UIViewController, GIDSignInDelegate, GIDSignInUIDelegate  {
                     user.signUpInBackground(block: { (success, err) in
                         if success {
                             let tabBarViewcontroller = TabBar()
-                            self.navigationController?.pushViewController(tabBarViewcontroller, animated: true)
+                            self.present(tabBarViewcontroller, animated: true, completion: nil)
                         } else {
                             FBSDKLoginManager().logOut()
                             self.simpleAlert(Message: (err?.localizedDescription)!, title: "Sign up Error")

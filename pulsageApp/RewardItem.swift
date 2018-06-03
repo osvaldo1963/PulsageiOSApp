@@ -12,8 +12,7 @@ import MobileCoreServices
 class RewardItem: UIViewController {
     
     public var challengeid = ""
-    
-    let menuController = MenuController()
+
     let feedbackController = FeedbackController()
     
     var viewWidth: CGFloat {
@@ -71,8 +70,7 @@ class RewardItem: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        let safeview = self.view.safeAreaLayoutGuide
-        self.menuController.delegate = self
+        
         self.view.backgroundColor = .white
         
         self.view.addSubview(self.sposorLogo)
@@ -104,9 +102,7 @@ class RewardItem: UIViewController {
         self.feedbackController.presetFeebBackController()
     }
     
-    @objc private func Menu() {
-        self.menuController.PresentMenu()
-    }
+    
     
     @objc fileprivate func presentLoginController() {
         self.view.endEditing(true)
@@ -135,7 +131,7 @@ class RewardItem: UIViewController {
         sponsorQuery.getFirstObjectInBackground { (data, error) in
             guard let sponsor = data else {return}
             guard let sponsorLogo = sponsor["logo"] as? PFFile else {return}
-            guard let sponsorName = sponsor["companyName"] as? String else {return}
+            
             self.sposorLogo.sd_setImage(with: URL(string:sponsorLogo.url!))
         }
     }
@@ -157,31 +153,6 @@ class RewardItem: UIViewController {
     
 }
 
-extension RewardItem: MenuDeledate {
-    func buttonPressed(buttonPre: String) {
-        let tbbar = TabBar()
-        switch buttonPre {
-        case "challenge":
-            tbbar.selectedIndex = 2
-        
-        case "feedback":
-            self.presetFeebBackController()
-        case "settings":
-            let settingsview = Settings()
-            self.navigationController?.pushViewController(settingsview, animated: true)
-        case "session":
-            if PFUser.current() != nil {
-                PFUser.logOut()
-                FBSDKLoginManager().logOut()
-                tbbar.selectedIndex = 0
-             
-            } else {
-                self.presentLoginController()
-            }
-        default:
-            break
-        }
-    }
-}
+
 
 

@@ -128,8 +128,8 @@ class VideoInfo: UIViewController {
     
     //Mark: video upoad =====================================================
     @objc fileprivate func UploadVideo() {
-        let app = UIApplication.shared.delegate as! AppDelegate
-        guard let url = self.videoUrl  else {return }
+        //let app = UIApplication.shared.delegate as! AppDelegate
+        //guard let url = self.videoUrl  else {return }
         guard let id = PFUser.current()?.objectId else {return}
         guard let name = self.titleInput.text else {return}
         guard let descript = self.descrotionInput.text else {return}

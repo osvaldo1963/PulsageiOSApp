@@ -25,6 +25,7 @@ class Follow: UIViewController {
         table.register(UserCell.self, forCellReuseIdentifier: self.tableviewcellId)
         table.allowsSelection = true
         table.translatesAutoresizingMaskIntoConstraints = false
+        table.separatorStyle = .none
         return table
     }()
     

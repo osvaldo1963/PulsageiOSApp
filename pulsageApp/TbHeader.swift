@@ -75,7 +75,6 @@ class TbHeader: UIView {
         btn.translatesAutoresizingMaskIntoConstraints = false
         btn.setFAIcon(icon: .FAShare, iconSize: 25, forState: .normal)
         btn.setTitleColor(.black, for: .normal)
-        btn.isEnabled = false
         return btn
     }()
     

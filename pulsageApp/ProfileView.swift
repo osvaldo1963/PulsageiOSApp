@@ -36,8 +36,6 @@ class ProfileScrollView: UIScrollView {
         self.addSubview(self.nameLabel)
         
         self.nameLabel.frame = CGRect(x: 10, y: 240, width: frame.size.width / 3 - 10, height: 50)
-        
-        
     }
     
     required init?(coder aDecoder: NSCoder) {

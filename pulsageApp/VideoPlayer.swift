@@ -79,20 +79,17 @@ class VideoPlayer: UIViewController {
         super.viewDidLoad()
         self.view.backgroundColor = UIColor(red:0.98, green:0.98, blue:0.98, alpha:1.0)
         self.subviews()
-        
+        DispatchQueue.global(qos: .userInteractive).async {
+            self.setVideoData()
+            self.getComments()
+        }
         
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         self.navigationBarProp()
-        
-        DispatchQueue.global(qos: .userInteractive).async {
-            self.setVideoData()
-            self.getComments()
-            //self.setVideosize(videoFile: self.videdata)
-        }
-        
+       
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -126,8 +123,8 @@ class VideoPlayer: UIViewController {
     //Mark: Add Number of views
     //================================================
     private func viewCount(header: TbHeader) {
+        header.sharetBtn.isHidden = true
         let query = self.videdata
-        
         query?.fetchInBackground(block: { (data, error) in
             if error == nil {
                 guard let result = data else {return}
@@ -136,15 +133,12 @@ class VideoPlayer: UIViewController {
                 result.saveInBackground(block: { (success, error) in
                     guard let currentviews = result["views"] as? Int else {return}
                     DispatchQueue.main.async {
-                        header.instagramBtn.setTitle("Views \(currentviews)", for: .normal)
+                        header.instagramBtn.setTitle("Views \(currentviews + 1)", for: .normal)
                     }
-                    
-                    
                 })
-                
             }
         })
-    
+        
     }
     //================================================
     //Mark: End Adding number of views
@@ -201,11 +195,11 @@ class VideoPlayer: UIViewController {
     @objc private func BackButtonAction() {
         self.navigationController?.popViewController(animated: true)
     }
+    
     private func setVideoData() {
         /// set video player
-        guard let videoFile = self.videdata["video"] as? PFFile else {return}
-        guard let videoUrl = videoFile.url else {return}
-        guard let url = URL(string: videoUrl) else {return}
+        guard let videoFile = self.videdata["videourl"] as? String else {return}
+        guard let url = URL(string: videoFile) else {return}
         
         
         self.player = AVPlayer(url: url)
@@ -223,80 +217,14 @@ class VideoPlayer: UIViewController {
         ///
     }
     
-    private func setVideosize(videoFile: PFObject) {
-        
-        guard let videoFile = videoFile["video"] as? PFFile else {return}
-        guard let videoUrl = videoFile.url else {return}
-        guard let url = URL(string: videoUrl) else {return}
-        guard let videoResolution = self.resolutionForLocalVideo(url: url) else {
-            return
-        }
-        
-        if videoResolution.width < videoResolution.height {
-            UIView.animate(withDuration: 1.0, animations: {
-                DispatchQueue.main.async {
-                    /*
-                    self.controller.view.translatesAutoresizingMaskIntoConstraints = false
-                    self.controller.view.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
-                    self.controller.view.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor).isActive = true
-                    self.controller.view.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor).isActive = true
-                    self.controller.view.heightAnchor.constraint(equalToConstant: self.view.frame.size.height / 2).isActive = true
-                    
-                    self.vpTable.translatesAutoresizingMaskIntoConstraints = false
-                    self.vpTable.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: self.view.frame.size.height / 2).isActive = true
-                    self.vpTable.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor).isActive = true
-                    self.vpTable.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor).isActive = true
-                    self.vpTable.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
-                    */
-                }
-            })
-        } else {
-            UIView.animate(withDuration: 1.0, animations: {
-                DispatchQueue.main.async {
-                    /*
-                    self.controller.view.translatesAutoresizingMaskIntoConstraints = false
-                    self.controller.view.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
-                    self.controller.view.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor).isActive = true
-                    self.controller.view.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor).isActive = true
-                    self.controller.view.heightAnchor.constraint(equalToConstant: self.view.frame.size.height / 3).isActive = true
-                    
-                    self.vpTable.translatesAutoresizingMaskIntoConstraints = false
-                    self.vpTable.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: self.view.frame.size.height / 3).isActive = true
-                    self.vpTable.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor).isActive = true
-                    self.vpTable.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor).isActive = true
-                    self.vpTable.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
-                    */
-                }
-            })
-        }
-    }
-    
-    var lasContent: CGFloat = 0
-    
-    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-        self.lasContent = scrollView.contentOffset.y
-    }
-    
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if self.lasContent < scrollView.contentOffset.y {
-            print("scroll")
-        } else {
-            print("none")
-           
-        }
-    }
-    
     private func changeForVideoSelected(videoObject: PFObject) {
         self.videdata = videoObject
         /// set video player
-        guard let videoFile = self.videdata["video"] as? PFFile else {return}
-        guard let videoUrl = videoFile.url else {return}
-        guard let url = URL(string: videoUrl) else {return}
+        guard let videoFile = self.videdata["videourl"] as? String else {return}
+        guard let url = URL(string: videoFile) else {return}
         self.player.replaceCurrentItem(with: AVPlayerItem(url: url))
         self.player.play()
         self.getComments()
-        //self.setVideosize(videoFile: videoObject)
-        
     }
     
     fileprivate func getComments() {
@@ -312,6 +240,7 @@ class VideoPlayer: UIViewController {
                 self.vpTable.reloadSections(IndexSet(integer: 1), with: .automatic)
             }
         }
+    
     }
     
     fileprivate func realetedVideos() {
@@ -334,14 +263,12 @@ class VideoPlayer: UIViewController {
         guard let videoDescription = self.videdata["description"] as? String else {return }
         guard let videoChallenge = self.videdata["Challenges"] as? PFObject else {return}
         
-        head.sharetBtn.isHidden = true
+        head.sharetBtn.isHidden = false
         head.videoDescription.text = videoDescription
         head.sharetBtn.addTarget(self, action: #selector(ShareBtn), for: .touchUpInside)
         head.segmented.currentButton = self.buttonPressed
         head.segmented.ButtonTitles = ["Comments", "Similar Videos"]
         head.segmented.delegate = self
-        head.votetBtn.object = videoChallenge
-        head.votetBtn.addTarget(self, action: #selector(self.likeAction(sender:)), for: .touchUpInside)
         head.reportBtn.addTarget(self, action: #selector(self.ReportBtn), for: .touchUpInside)
         //user data
         guard let user = self.videdata["User"] as? PFUser else {return}
@@ -377,7 +304,6 @@ class VideoPlayer: UIViewController {
             }
         }
         
-        
         if videoChallenge.objectId == "nil" {
             head.rocketIcon.isEnabled = false
         } else {
@@ -391,8 +317,7 @@ class VideoPlayer: UIViewController {
     
     //Mark: Report Share and Vote Button Functions
     @objc fileprivate func ReportBtn() {
-        self.simpleAlert(Message: "thank you for reposting this video our team will review the content of this video and take action", title: "Report Video")
-        
+        self.simpleAlert(Message: "thank you for reporting this video. our team will review the content of this video and take action", title: "Report Video")
     }
     
     @objc fileprivate func ShareBtn() {
@@ -406,7 +331,7 @@ class VideoPlayer: UIViewController {
         
         let vc = UIActivityViewController(activityItems: [image, appLink], applicationActivities: [])
         self.present(vc, animated: true, completion: nil)
-    }
+    } 
     
     @objc private func presentprofile(sender: GestureRescognizer) {
         guard let data = sender.data else {return}
@@ -431,11 +356,9 @@ class VideoPlayer: UIViewController {
     }
     
     @objc private func likeAction(sender: CustomBtn) {
+        
         self.parseData.likeButtonAction(sender: sender)
     }
-    
-    
-    
     //============================================
 }
 
@@ -602,7 +525,7 @@ extension VideoPlayer: UITableViewDelegate, UITableViewDataSource {
             if self.buttonPressed == "Comments" {
                 return 100
             } else {
-                return 280
+                return self.view.frame.size.height / 2 + 20
             }
         }
     }

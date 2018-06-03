@@ -4,7 +4,7 @@
   "CredentialsProvider": {
     "CognitoIdentity": {
       "Default": {
-        "PoolId": "us-east-1:99165cbc-5339-4a34-839a-9c2c9dca8ab1",
+        "PoolId": "us-east-1:803c416c-afbb-48e0-b8b3-6fc9cd86cd70",
         "Region": "us-east-1"
       }
     }
@@ -12,15 +12,10 @@
   "IdentityManager": {
     "Default": {}
   },
-  "PinpointAnalytics": {
-    "Default": {
-      "AppId": "3d97d5a99d08498cb7842b6f72f646ec",
-      "Region": "us-east-1"
+    "S3TransferUtility": {
+        "Default": {
+            "Bucket": "pulsagevideos",
+            "Region": "S3-REGION"
+        }
     }
-  },
-  "PinpointTargeting": {
-    "Default": {
-      "Region": "us-east-1"
-    }
-  }
 }

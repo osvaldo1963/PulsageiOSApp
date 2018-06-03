@@ -143,6 +143,7 @@ class EmptyChallenge: UIViewController {
     
     @objc private func presentCamera() {
         let cameraController = CameraRecorded()
+        cameraController.challenge = self.objectData
         let rootNavigationController = UINavigationController(rootViewController: cameraController)
         rootNavigationController.gradientBackground()
         self.present(rootNavigationController, animated: true, completion: nil)

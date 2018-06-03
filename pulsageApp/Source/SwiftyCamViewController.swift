@@ -472,7 +472,7 @@ open class SwiftyCamViewController: UIViewController {
 				})
 			})
 		} else {
-			if device.isFlashActive == true {
+			if device.isFlashAvailable == true {
 				changeFlashSettings(device: device, mode: .off)
 			}
 			capturePhotoAsyncronously(completionHandler: { (_) in })

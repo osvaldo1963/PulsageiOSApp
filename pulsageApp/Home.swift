@@ -1,8 +1,26 @@
 import UIKit
 import Parse
 import SDWebImage
+import FBSDKShareKit
+import Photos
+import FacebookShare
+import MobileCoreServices
+import Nuke
+import NukeWebPPlugin
 
 class Home: PulsageViewController {
+    
+    func showShareDialog<C: ContentProtocol>(_ content: C, mode: ShareDialogMode = .automatic) {
+        let dialog = ShareDialog(content: content)
+        dialog.presentingViewController = self
+        dialog.mode = mode
+        do {
+            try dialog.show()
+        } catch (let error) {
+            let alertController = UIAlertController(title: "sdsd", message: "\(error)", preferredStyle: .alert)
+            present(alertController, animated: true, completion: nil)
+        }
+    }
     
     //================================================
     //Mark: Private variables
@@ -57,16 +75,18 @@ class Home: PulsageViewController {
     //================================================
     override func viewDidLoad() {
         super.viewDidLoad()
+        WebPImageDecoder.enable()
         self.view.backgroundColor = UIColor.white
         self.addSunviews() //<--- add subview function
         
         DispatchQueue.global(qos: .userInitiated).async {
             self.homeFeedData()
         }
-        
         //=========== delegates  ====================
         self.headerCollection.delegate = self
     }
+    
+    
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
@@ -114,7 +134,6 @@ class Home: PulsageViewController {
     
     @objc private func homeFeedData() {
         PFCloud.callFunction(inBackground: "getVideos", withParameters: ["": ""], block: { (re, error) in
-            
             DispatchQueue.main.async {
                 if let data = re as? [[PFObject]]  {
                     self.dataHolder.removeAll(keepingCapacity: false)
@@ -148,12 +167,7 @@ class Home: PulsageViewController {
         self.navigationController?.pushViewController(challegeview, animated: true)
     }
     
-    @objc private func sendToProfile(sender: UIButton) {
-        guard let userid = sender.titleLabel?.text else {return}
-        let userprofile = UserProfile()
-        userprofile.userid = userid
-        self.navigationController?.pushViewController(userprofile, animated: true)
-    }
+    
     
     private func PresentVideoPlayer(video: PFObject, RealetedVideos: [PFObject]?) {
         let videoPlayer = VideoPlayer()
@@ -306,10 +320,21 @@ extension Home: UITableViewDelegate, UITableViewDataSource{
     //==========================================================
 }
 
+
 extension Home {
+
     func videoCell(cell: VideoCell, row: PFObject) -> VideoCell{
         
         cell.Header.challengeSponsor.isHidden = true //only for sponsor section
+        
+        
+        //========== InMark: Body ==================
+        guard let file = row["thumbnail"] as? PFFile else {return VideoCell() }
+        cell.Thubnail.sd_cancelCurrentAnimationImagesLoad()
+        cell.Thubnail.sd_setImage(with: file.getImage(), completed: nil)
+        
+        //========== InMark: Body ==================
+        
         row.fetchInBackground { (result, error) in
             if error == nil {
                 guard let rowdata = result else {return} //<---- unwrap PFObject
@@ -324,8 +349,8 @@ extension Home {
                         tapGesture.data = data
                         cell.Header.profileImage.addGestureRecognizer(tapGesture)
                         cell.Header.profileImage.isUserInteractionEnabled = true
-                        
                         DispatchQueue.main.async {
+                            cell.Header.profileImage.sd_cancelCurrentAnimationImagesLoad()
                             cell.Header.profileImage.sd_setImage(with: URL(string: userPicture), placeholderImage: UIImage(named: "User"), options: .transformAnimatedImage, completed: { (image, error, catched, url) in
                             })
                             cell.Header.profileBotton.button.setTitle("\(data.handle)", for: .normal)
@@ -335,13 +360,6 @@ extension Home {
                     }
                 }
                 //=========== InMark: Header ==============
-                
-                //========== InMark: Body ==================
-                guard let file = rowdata["thumbnail"] as? PFFile else {return }
-                DispatchQueue.main.async {
-                    cell.Thubnail.sd_setImage(with: file.getImage(), completed: nil)
-                }
-                //========== InMark: Body ==================
                 
                 //========== InMark: Footer ==================
                 guard let challenge = rowdata["Challenges"] as? PFObject else {return}
@@ -517,4 +535,20 @@ extension Home: HomepagehaderDelegate {
 
 class GestureRescognizer: UITapGestureRecognizer {
     var data: PFObject?
+}
+
+extension Home:  FBSDKSharingDelegate {
+    func sharer(_ sharer: FBSDKSharing!, didCompleteWithResults results: [AnyHashable : Any]!) {
+        print(results)
+    }
+    
+    func sharer(_ sharer: FBSDKSharing!, didFailWithError error: Error!) {
+        print(error)
+    }
+    
+    func sharerDidCancel(_ sharer: FBSDKSharing!) {
+        
+    }
+    
+    
 }

@@ -58,7 +58,7 @@ class notifications: PulsageViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        self.getGlobalNotifications()
+        self.getGlobalNotifications(sender: UIButton())
     }
     
     private func navProps() {
@@ -82,13 +82,18 @@ class notifications: PulsageViewController {
         self.tableview.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
     }
     
-    @objc func getGlobalNotifications() {
+    @objc func getGlobalNotifications(sender: UIButton) {
+        
+        self.myNotifications.backgroundColor = UIColor(red:0.87, green:0.36, blue:0.35, alpha:1.0)
+        sender.backgroundColor = .gray
         self.navigationController?.navigationBar.topItem?.title = "Notifications"
         self.getNotofications(equal: "channel", to: "global")
         
     }
     
-    @objc private func getMyNotofications() {
+    @objc private func getMyNotofications(sender: UIButton) {
+        sender.backgroundColor = .gray
+        self.globalNotifications.backgroundColor = UIColor(red:0.87, green:0.36, blue:0.35, alpha:1.0)
         self.navigationController?.navigationBar.topItem?.title = "My Notifications"
         guard let currentUserId = PFUser.current()?.objectId else {return}
         self.getNotofications(equal: "channel", to: currentUserId)

@@ -5,7 +5,7 @@ import SDWebImage
 //In this view there is a Euraka library this library will be use temporlily
 class EditProfile: UIViewController, UITextFieldDelegate {
     
-    fileprivate var imageholder = ""
+    fileprivate var imageholder: UIImage = UIImage()
     private let imagePicker = UIImagePickerController()
     fileprivate lazy var activityIndicator: UIActivityIndicatorView = {
         let indicator = UIActivityIndicatorView()
@@ -89,7 +89,7 @@ class EditProfile: UIViewController, UITextFieldDelegate {
         self.scrollView.addSubview(self.InputLName)
         self.scrollView.addSubview(self.InputEmail)
         
-        self.imagePicker.delegate = self
+        
         
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(notification:)), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(notification:)), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
@@ -160,14 +160,14 @@ class EditProfile: UIViewController, UITextFieldDelegate {
         guard let lastName = self.InputLName.InputField.text else {return}
         guard let email = self.InputEmail.InputField.text else {return}
         guard let currentUserId = PFUser.current()?.objectId else {return}
-        
+        guard let imageData = UIImagePNGRepresentation(self.imageholder) else {return}
+        print(self.imageholder)
         let Update = PFUser.query()
         Update?.whereKey("objectId", equalTo: currentUserId)
         Update?.getFirstObjectInBackground(block: { (user, error) in
             if error == nil {
                 guard let userObject = user else {return }
                 if self.imageholder.isEmpty {
-                
                     userObject["name"] = firstName
                     userObject["lastname"] = lastName
                     userObject["email"] = email
@@ -178,14 +178,11 @@ class EditProfile: UIViewController, UITextFieldDelegate {
                             }
                         }
                     })
-                    
+                    print("is is null")
                 } else {
-                    
-                    
-                    
-                    let imageurl = URL(string: self.imageholder)
-                    let imageData = try? Data(contentsOf: imageurl!)
-                    let uploadPicture = PFFile(name: "image.png", data: imageData!)
+                    //let imageurl = URL(string: self.imageholder)
+                    print(self.imageholder)
+                    let uploadPicture = PFFile(name: "image.png", data: imageData)
                     uploadPicture?.saveInBackground({ (success, error) in
                         userObject["profilePicture"] = uploadPicture
                         userObject["name"] = firstName
@@ -198,7 +195,7 @@ class EditProfile: UIViewController, UITextFieldDelegate {
                             }
                         })
                     }, progressBlock: { (progress) in
-                        
+                        print(progress)
                     })
                 }
                 
@@ -229,6 +226,7 @@ class EditProfile: UIViewController, UITextFieldDelegate {
     
     @objc fileprivate func ChoosePictureFrom() {
         if UIImagePickerController.isSourceTypeAvailable(.camera) {
+            self.imagePicker.delegate = self
             self.imagePicker.sourceType = .camera
             self.imagePicker.allowsEditing = true
             self.present(imagePicker, animated: true, completion: nil)
@@ -237,7 +235,8 @@ class EditProfile: UIViewController, UITextFieldDelegate {
     
     @objc fileprivate func ChooseFromLibrary() {
         if UIImagePickerController.isSourceTypeAvailable(.photoLibrary) {
-            self.imagePicker.sourceType = .photoLibrary
+            self.imagePicker.delegate = self
+            self.imagePicker.sourceType = .savedPhotosAlbum
             self.imagePicker.allowsEditing = true
             self.present(imagePicker, animated: true, completion: nil)
         }
@@ -247,10 +246,13 @@ class EditProfile: UIViewController, UITextFieldDelegate {
 
 extension EditProfile: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
-        let pickedImage = info[UIImagePickerControllerOriginalImage] as? UIImage
+        //let pickedImage = info[UIImagePickerControllerOriginalImage] as? UIImage
+        guard let imagePicked = UIImage.from(info: info) else {return}
+        self.imageholder = imagePicked
         DispatchQueue.main.async {
-            //self.profilePicture.image =  selectedImage
+            self.profilePicture.image = imagePicked
         }
+        
         self.dismiss(animated: true, completion: nil)
     }
     

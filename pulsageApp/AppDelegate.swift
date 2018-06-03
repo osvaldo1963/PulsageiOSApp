@@ -8,8 +8,7 @@ import FBSDKCoreKit
 import UserNotifications
 import NotificationBannerSwift
 import GoogleSignIn
-
-
+import FirebaseCore
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate  {
@@ -23,6 +22,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         self.facebookSdkSetUp()
         self.notificationSettings(application: application)
         self.googleSdkSetup()
+        FirebaseApp.configure()
+        
         application.applicationIconBadgeNumber = 0
         let center = UNUserNotificationCenter.current()
         center.removeAllDeliveredNotifications()
@@ -110,8 +111,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
             (parse) in
             parse.applicationId = "iGQKoGJQTo3AUXSG4v1LMEXS0r9RRn9ecnpuJuuG"
             parse.clientKey = "1qrhLziRnAqMYnS08HOTMGACzx9nbuH0HrnM26NM"
-            //parse.isLocalDatastoreEnabled = true
-            parse.server = "https://parseapi.back4app.com"
+            //parse.server = "https://parseapi.back4app.com"
+            parse.server = "http://pulsage.back4app.io/"
         }
         Parse.initialize(with: confiParse)
     }

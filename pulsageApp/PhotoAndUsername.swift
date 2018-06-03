@@ -1,6 +1,7 @@
 import UIKit
 import Parse
 
+//future used 
 class PhotoAndUsername: UIViewController {
     
     override func viewDidLoad() {

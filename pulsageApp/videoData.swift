@@ -2,19 +2,23 @@ import UIKit
 import Parse
 import AVKit
 import AVFoundation
+import NotificationBannerSwift
 
 class videoData: UIViewController {
     
     //Mark: public variable
     public var videoUrl : URL?
+    public var challengeObject: PFObject?
     
     //Mark: fileprivate variable
     private var challenges          = [PFObject]()
     private var challengeNameHolder = [""]
     private let challengePicker     = ChallengePicker()
     
-    private var challengeObject: PFObject?
     
+    private let parsedata = ParseFunctions()
+    private var pulsageServices = PulsageServices()
+    private var video = AVPlayer()
     
     private var player: AVPlayerViewController = {
         let con = AVPlayerViewController()
@@ -37,9 +41,9 @@ class videoData: UIViewController {
         let picker = UIButton()
         picker.backgroundColor = UIColor(red:0.87, green:0.36, blue:0.35, alpha:1.0)
         picker.layer.cornerRadius = 20
-        picker.setTitle("Upload to a Challenge? (optional)", for: .normal)
+        picker.setTitle("Upload to a Challenge?", for: .normal)
         picker.titleLabel?.font = UIFont.systemFont(ofSize: 16)
-        picker.setTitleColor(.black, for: .normal)
+        picker.setTitleColor(.white, for: .normal)
         picker.addTarget(self, action: #selector(challengeController), for: .touchUpInside)
         picker.translatesAutoresizingMaskIntoConstraints = false
         return picker
@@ -70,7 +74,7 @@ class videoData: UIViewController {
         super.viewDidLoad()
         self.view.backgroundColor = .white
         self.addsubviews()
-     
+       
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -79,11 +83,12 @@ class videoData: UIViewController {
         self.navigationController?.navigationBar.topItem?.title = "Upload Video!"
         self.navigationControllerProps()
         self.videosize(url: self.videoUrl!)
+        self.ifChallengeExist()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-     
+        self.video.pause()
     }
     
     //Mark: private functions
@@ -126,12 +131,25 @@ class videoData: UIViewController {
         self.challengePicker.delegate = self
     }
     
+    private func ifChallengeExist() {
+        guard let cha = self.challengeObject else {return}
+        cha.fetchInBackground { (result, error) in
+            if error == nil {
+                guard let challenge = result else {return}
+                guard let chaDescription = challenge["description"] as? String else {return}
+                DispatchQueue.main.async {
+                    self.Picker.setTitle(chaDescription, for: .normal)
+                }
+            }
+        }
+    }
     
     private func setVideoPlayer() {
         guard let urlback = self.videoUrl else {return}
-        let video = AVPlayer(url: urlback)
+        self.video = AVPlayer(url: urlback)
         self.player.player = video
-        video.play()
+        self.video.play()
+        
     }
     
     private func navigationControllerProps() {
@@ -164,32 +182,59 @@ class videoData: UIViewController {
     }
     
     @objc private func uploadBtn() {
-        guard let app = UIApplication.shared.delegate as? AppDelegate else {return}
         guard let url = self.videoUrl else {return}
+        
+        //self.parsedata.uploadVideo(videoUrl: url) { (result, error) in
+           
+        //}
+        
+        
         let User = PFUser.current()
         let videoDescription = self.videoDescription.text!
         if User == nil  || videoDescription.isEmpty {
             self.simpleAlert(Message: "Video Description is required! ", title: "Error")
         } else {
-        
             guard let currentUser = User else {return}
             if let challenge = self.challengeObject {
-                app.submitVideos(videoUrl: url, user: currentUser, name: "", descript: videoDescription, challenge: challenge)
+                
+                self.pulsageServices.videoUrl = url
+                self.pulsageServices.user = currentUser
+                self.pulsageServices.name = ""
+                self.pulsageServices.descript = videoDescription
+                self.pulsageServices.challenge = challenge
+                self.pulsageServices.uploadVideo { (result, err) in
+                    if err == nil {
+                        
+                        
+                    } else {
+                        
+                    }
+                }
                 self.dismissControler()
+                
             } else {
-                app.submitVideos(videoUrl: url, user: currentUser, name: "", descript: videoDescription, challenge: nil)
+                self.pulsageServices.videoUrl = url
+                self.pulsageServices.user = currentUser
+                self.pulsageServices.name = ""
+                self.pulsageServices.descript = videoDescription
+                self.pulsageServices.challenge = nil
+                self.pulsageServices.uploadVideo { (result, err) in
+                    if err == nil {
+                        
+                        
+                    } else {
+                     
+                    }
+                }
                 self.dismissControler()
             }
         }
+ 
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesBegan(touches, with: event)
         self.videoDescription.endEditing(true)
-    }
-    
-    private func checkHastags() {
-        
     }
     
 }
@@ -207,7 +252,7 @@ extension videoData: UITextViewDelegate {
         do {
             // Find all the hashtags in our string
             let regex = try NSRegularExpression(pattern: "(?:\\s|^)(#(?:[a-zA-Z].*?|\\d+[a-zA-Z]+.*?))\\b", options: NSRegularExpression.Options.anchorsMatchLines)
-            let results = regex.matches(in: text ,options: NSRegularExpression.MatchingOptions.withoutAnchoringBounds, range: NSMakeRange(0, text.characters.count))
+            let results = regex.matches(in: text ,options: NSRegularExpression.MatchingOptions.withoutAnchoringBounds, range: NSMakeRange(0, text.count))
             let array = results.map { (text as NSString).substring(with: $0.range) }
             for hashtag in array {
                 // get range of the hashtag in the main string
@@ -250,7 +295,7 @@ extension videoData: UITextViewDelegate {
 extension videoData: searchChallengeDelegate {
     func searchObeject(object: PFObject) {
         self.challengeObject = object
-        guard let challengename = object["title"] as? String else {return}
+        guard let challengename = object["description"] as? String else {return}
         DispatchQueue.main.async {
             self.Picker.setTitle("Current Challenge: \(challengename) ", for: .normal)
         }

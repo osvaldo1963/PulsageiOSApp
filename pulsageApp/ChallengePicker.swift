@@ -129,7 +129,7 @@ extension ChallengePicker: UISearchBarDelegate {
     
     func moveTextField(_ textField: UISearchBar, moveDistance: Int, up: Bool) {
         let moveDuration = 0.2
-        let movement: CGFloat = CGFloat(up ? moveDistance : -moveDistance)
+        //let movement: CGFloat = CGFloat(up ? moveDistance : -moveDistance)
         
         UIView.beginAnimations("animateTextField", context: nil)
         UIView.setAnimationBeginsFromCurrentState(true)

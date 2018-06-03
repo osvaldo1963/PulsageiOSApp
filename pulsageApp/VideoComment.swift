@@ -46,7 +46,7 @@ class VideoComment: UIViewController {
     }
     
     @objc private func resizeViewForKeyboard(notification: Notification) {
-        guard let keyboardFrame = notification.userInfo?[UIKeyboardIsLocalUserInfoKey] as? NSValue else {return}
+        //guard let keyboardFrame = notification.userInfo?[UIKeyboardIsLocalUserInfoKey] as? NSValue else {return}
         
     }
     
@@ -191,7 +191,7 @@ extension VideoComment: UITableViewDelegate, UITableViewDataSource {
                     tapGesture.data = user
                     cell.profilePicture.addGestureRecognizer(tapGesture)
                     
-                    guard let username = user["username"] as? String else {return}
+                    guard let username = user[" handle"] as? String else {return}
                     cell.linkToProfile.setTitle(username.getTextFromEmail(), for: .normal)
                 }
             }

@@ -193,12 +193,7 @@ class ChallengeTab: UIViewController {
         self.navigationController?.pushViewController(challegeview, animated: true)
     }
     
-    @objc private func sendToProfile(sender: UIButton) {
-        guard let userid = sender.titleLabel?.text else {return}
-        let userprofile = UserProfile()
-        userprofile.userid = userid
-        self.navigationController?.pushViewController(userprofile, animated: true)
-    }
+  
     
     private func PresentVideoPlayer(video: PFObject, RealetedVideos: [PFObject]?) {
         let videoPlayer = VideoPlayer()

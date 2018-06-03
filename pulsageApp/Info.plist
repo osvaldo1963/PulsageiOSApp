@@ -21,7 +21,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>2.0.2</string>
+	<string>2.0.7</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -50,6 +50,8 @@
 	<string>Pulsage</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
+		<string>instagram</string>
+		<string>fb</string>
 		<string>fbapi</string>
 		<string>fb-messenger-api</string>
 		<string>fbauth2</string>
@@ -66,6 +68,12 @@
 	<string>Pulsage need access to user Photo library for you to upload video</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Pulsage need access to your camera to record videos</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>we will use your location </string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>we will use your location</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>we will use your location </string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Pulsage need access to your microphone to record videos</string>
 	<key>NSPhotoLibraryUsageDescription</key>
@@ -77,14 +85,12 @@
 		<string>armv7</string>
 	</array>
 	<key>UIRequiresFullScreen</key>
-	<false/>
+	<true/>
 	<key>UIStatusBarHidden</key>
 	<false/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 </dict>
 </plist>

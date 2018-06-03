@@ -68,19 +68,14 @@ class Presentation: UIViewController {
             view.backgroundColor = UIColor(red:0, green:0, blue:0, alpha:0.4)
         return view
     }()
-    
-    //===================================================================
     //===================================================================
     
-    
+    //===================================================================
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = .white
-        
         self.navigationController?.navigationBar.isHidden = true //hide navigation controller
-        
         self.addSubviews()
-    
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -154,17 +149,8 @@ class Presentation: UIViewController {
     }
     //==========================================
     
-    //Mark: Facebook login Manager
-    @objc fileprivate func loginManager() {
-        let loginmanager = FBSDKLoginManager()
-        loginmanager.logIn(withReadPermissions: ["email"], from: self) { (result, error) in
-            self.getFBUserData()
-        }
-    }
-    //===============================
-    
     //Mark: Facebook user inforation
-    fileprivate func getFBUserData() {
+    private func getFBUserData() {
         if FBSDKAccessToken.current() != nil {
             let graphic = FBSDKGraphRequest(graphPath: "me", parameters: ["fields":"id,email,name,picture.width(480).height(480), gender"])
             graphic?.start(completionHandler: { (connection, user, error) in
@@ -175,6 +161,16 @@ class Presentation: UIViewController {
         }
     }
     //===================================
+    
+    //Mark: Check User Session
+    
+    private func CheckSession() {
+        if PFUser.current() != nil {
+            let tabBarViewcontroller = TabBar()
+            self.navigationController?.pushViewController(tabBarViewcontroller, animated: true)
+        }
+    }
+    //====================================
     
     //Mark: Buttons navigation props
     @objc private func presentSignUpController() {
@@ -188,19 +184,16 @@ class Presentation: UIViewController {
     @objc private func presneTermsConditions() {
         self.navigationController?.pushViewController(TermsConditions(), animated: true)
     }
-    
     //=====================================
     
-    //Mark: Check User Session
-    
-    private func CheckSession() {
-        if PFUser.current() != nil {
-            let tabBarViewcontroller = TabBar()
-            self.navigationController?.pushViewController(tabBarViewcontroller, animated: true)
+    //Mark: Facebook login Manager
+    @objc fileprivate func loginManager() {
+        let loginmanager = FBSDKLoginManager()
+        loginmanager.logIn(withReadPermissions: ["email"], from: self) { (result, error) in
+            self.getFBUserData()
         }
     }
-    //====================================
-    
+    //===============================
     
     //Mark: Login action
     @objc fileprivate func SigninAction(Email: String, Pass: String, fbAccount: Bool) {

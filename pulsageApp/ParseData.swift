@@ -1,5 +1,9 @@
 import UIKit
 import Parse
+import NotificationBannerSwift
+import AVFoundation
+import Alamofire
+
 
 struct ParseFunctions {
     
@@ -135,7 +139,6 @@ struct ParseFunctions {
         }
     }
     
-    
     public func ParseObject(body: [String: Any]?, ClassName: String, Type: objectType, Result: @escaping(Any) -> Void) {
         let object = PFObject(className: ClassName)
         if body != nil {
@@ -158,3 +161,5 @@ struct ParseFunctions {
     }
     
 }
+
+
